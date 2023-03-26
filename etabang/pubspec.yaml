@@ -63,6 +63,7 @@ flutter:
     - assets/images/get-started-img.png
     - assets/images/sign-in-splash-logo.png
     - assets/images/welcome-page-splash-art.png
+    - assets/images/default-profile.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
