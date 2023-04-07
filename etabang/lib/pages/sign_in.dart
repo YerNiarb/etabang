@@ -1,3 +1,7 @@
+import 'package:etabang/global/vars.dart';
+import 'package:etabang/pages/customer/find_services.dart';
+import 'package:etabang/pages/homepage.dart';
+import 'package:etabang/pages/sign_up.dart';
 import 'package:flutter/material.dart';
 
 class SignIn extends StatelessWidget {
@@ -96,9 +100,22 @@ class SignIn extends StatelessWidget {
                     const TextStyle(fontSize: 20, fontFamily: 'Poppins'),
                   )),
               onPressed: () {
-                // This function will be called when the button is pressed
+                if(userName.text.isNotEmpty && password.text.isNotEmpty){
+                  isLoggedIn = true;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Homepage()),
+                  );
+                }
+                else{
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Enter username or password'),
+                    ),
+                  );
+                }
               },
-              child: const Text('Sign Up')
+              child: const Text('Sign In')
             ),
 
             Padding(
@@ -116,7 +133,10 @@ class SignIn extends StatelessWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          // Handle the tap event
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SignUp()),
+                          );
                         },
                         child: const Text('Sign Up',
                           style: TextStyle(

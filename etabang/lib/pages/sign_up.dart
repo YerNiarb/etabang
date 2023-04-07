@@ -1,5 +1,8 @@
+import 'package:etabang/pages/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
+
+import '../global/vars.dart';
 
 class SignUp extends StatelessWidget {
   const SignUp({super.key});
@@ -132,7 +135,20 @@ class SignUp extends StatelessWidget {
                     const TextStyle(fontSize: 20, fontFamily: 'Poppins'),
                   )),
               onPressed: () {
-                // This function will be called when the button is pressed
+                if(userName.text.isNotEmpty && password.text.isNotEmpty){
+                  isLoggedIn = true;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignIn()),
+                  );
+                }
+                else{
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Enter required fields.'),
+                    ),
+                  );
+                }
               },
               child: const Text('Sign Up')
             ),
@@ -152,7 +168,10 @@ class SignUp extends StatelessWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          // Handle the tap event
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SignIn()),
+                          );
                         },
                         child: const Text('Sign In',
                           style: TextStyle(
