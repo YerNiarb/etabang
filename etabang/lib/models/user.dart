@@ -4,7 +4,7 @@ class User {
   String street;
   String city;
   String state;
-  String profileImageUrl;
+  String? profileImageUrl;
   String userName;
 
   User(

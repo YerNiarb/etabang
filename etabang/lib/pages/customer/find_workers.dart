@@ -1,4 +1,7 @@
+import 'package:etabang/pages/common/drawer.dart';
+import 'package:etabang/pages/customer/view_service_worker_details.dart';
 import 'package:flutter/material.dart';
+import '../../global/vars.dart';
 import '../../models/service_worker.dart';
 import '../homepage.dart';
 
@@ -24,28 +27,32 @@ class FindWorkers extends StatelessWidget {
           city: 'Polomolok',
           state: 'South Cotabato',
           street: '1103 Champaca St.',
-          userName: 'john2424'),
+          userName: 'john2424',
+          hourlyPrice: 100),
       ServiceWorker(
           firstName: 'Katherine',
           lastName: 'Doe',
           city: 'Polomolok',
           state: 'South Cotabato',
           street: '1103 Champaca St.',
-          userName: 'john2424'),
+          userName: 'john2424',
+          hourlyPrice: 100),
       ServiceWorker(
           firstName: 'Jesse',
           lastName: 'Doe',
           city: 'Polomolok',
           state: 'South Cotabato',
           street: '1103 Champaca St.',
-          userName: 'john2424'),
+          userName: 'john2424',
+          hourlyPrice: 100),
       ServiceWorker(
           firstName: 'Stephen',
           lastName: 'Doe',
           city: 'Polomolok',
           state: 'South Cotabato',
           street: '1103 Champaca St.',
-          userName: 'john2424'),
+          userName: 'john2424',
+          hourlyPrice: 100),
     ];
 
     return Scaffold(
@@ -116,47 +123,62 @@ class FindWorkers extends StatelessWidget {
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
-                childAspectRatio: 1,
+                childAspectRatio: 0.85,
+                padding: EdgeInsets.all(5.0),
                 children: List.generate(availableWorkers.length, (index) {
-                  return Center(
-                    child: Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(0),
+                  return InkWell(
+                     onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ViewServiceWorkerDetails(serviceWorker: availableWorkers[index])),
+                      );
+                    },
+                    child: Container(
+                      margin: EdgeInsets.all(8.0),
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                width: 160,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
                                   image: DecorationImage(
-                                    image: AssetImage(availableWorkers[index]
-                                        .profileImageUrl),
+                                    image: AssetImage(availableWorkers[index].profileImageUrl ?? defaulProfileImageUrl),
                                     fit: BoxFit.cover,
                                     alignment: Alignment.center,
                                   )),
-                            ),
-                            Text(
-                              availableWorkers[index].firstName,
-                              textAlign: TextAlign.center,
-                              maxLines: null,
-                              style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Poppins'),
-                            ),
-                            Text(
-                              '1000 km away',
-                              textAlign: TextAlign.center,
-                              maxLines: null,
-                              style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Color(0x97979797),
-                                  fontFamily: 'Poppins'),
-                            ),
-                          ],
+                              ),
+                              Container(
+                                margin: const EdgeInsets.fromLTRB(8.0, 8.0, 0, 0),
+                                child: Text(
+                                  availableWorkers[index].firstName,
+                                  textAlign: TextAlign.left,
+                                  maxLines: null,
+                                  style: const TextStyle(
+                                      fontSize: 19,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Poppins'),
+                                ),
+                              ),
+                              Container(
+                                margin: const EdgeInsets.fromLTRB(8.0, 0, 0, 1),
+                                child: Text(
+                                  '1000 km away',
+                                  textAlign: TextAlign.left,
+                                  maxLines: null,
+                                  style: const TextStyle(
+                                      fontSize: 17,
+                                      color: Color(0x97979797),
+                                      fontFamily: 'Poppins'),
+                                ),
+                              ),
+                            ],
                         ),
                       ),
                     ),
@@ -164,35 +186,6 @@ class FindWorkers extends StatelessWidget {
                 }),
               ),
             )
-            // Expanded(
-            //   child: ListView.builder(
-            //     itemCount: availableWorkers.length,
-            //     itemBuilder: (context, index) {
-            //       return Card(
-            //         child: Padding(
-            //           padding: EdgeInsets.all(0),
-            //           child: Column(
-            //             crossAxisAlignment: CrossAxisAlignment.start,
-            //             children: [
-            //               Container(
-            //                 margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-            //                 width: 130,
-            //                 height: 130,
-            //                 decoration: BoxDecoration(
-            //                     borderRadius: BorderRadius.circular(5),
-            //                     image: DecorationImage(
-            //                       image: AssetImage(availableWorkers[index].profileImageUrl),
-            //                       fit: BoxFit.cover,
-            //                       alignment: Alignment.center,
-            //                     )),
-            //               ),
-            //             ],
-            //           ),
-            //         ),
-            //       );
-            //     },
-            //   ),
-            // ),
           ]),
         ),
       ),

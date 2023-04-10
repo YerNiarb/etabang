@@ -1,6 +1,7 @@
 import 'package:etabang/models/user.dart';
 
 class ServiceWorker extends User {
+  double hourlyPrice;
   double currentLocationLat;
   double currentLocationLong;
 
@@ -12,6 +13,7 @@ class ServiceWorker extends User {
     required super.state, 
     required super.userName,
     this.currentLocationLat = 12.879721,
-    this.currentLocationLong = 121.77401699999996
+    this.currentLocationLong = 121.77401699999996,
+    this.hourlyPrice = 0.00
   });
 }

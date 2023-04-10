@@ -53,7 +53,7 @@ class _HomepageState extends State<Homepage> {
               label: '',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.navigation_outlined),
+              icon: Icon(Icons.location_on_outlined),
               label: '',
             ),
             BottomNavigationBarItem(
