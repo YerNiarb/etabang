@@ -1,4 +1,6 @@
+import 'package:etabang/pages/homepage.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -60,8 +62,13 @@ class WelcomePage extends StatelessWidget {
                       textStyle: MaterialStateProperty.all<TextStyle>(
                         const TextStyle(fontSize: 20, fontFamily: 'Poppins'),
                       )),
-                  onPressed: () {
-                    // This function will be called when the button is pressed
+                  onPressed: () async {
+                     SharedPreferences prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('isFirstLogin', false);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => Homepage()),
+                      );
                   },
                   child: const Text('Go to Homepage')
                 ),

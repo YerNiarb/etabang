@@ -2,6 +2,7 @@ import 'package:etabang/global/vars.dart';
 import 'package:etabang/pages/customer/find_services.dart';
 import 'package:etabang/pages/homepage.dart';
 import 'package:etabang/pages/sign_up.dart';
+import 'package:etabang/pages/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -109,10 +110,20 @@ class SignIn extends StatelessWidget {
                     SharedPreferences prefs = await SharedPreferences.getInstance();
                     await prefs.setBool('isLoggedIn', true);
 
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Homepage()),
-                    );
+                    bool isFirstTime = prefs.getBool('isFirstLogin') ?? true;
+
+                    if (isFirstTime) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const WelcomePage()),
+                        );
+                      } else {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const Homepage()),
+                      );
+                    }
                   }
                   else{
                     ScaffoldMessenger.of(context).showSnackBar(

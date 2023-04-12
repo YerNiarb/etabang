@@ -1,5 +1,5 @@
 import 'package:etabang/models/service_worker.dart';
-import 'package:etabang/pages/customer/find_workers.dart';
+import 'package:etabang/pages/customer/book_service.dart';
 import 'package:flutter/material.dart';
 import '../../global/vars.dart';
 import '../common/star_rating.dart';
@@ -346,6 +346,10 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                                   fontSize: 20, fontFamily: 'Poppins'),
                             )),
                         onPressed: () async {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => BookService(serviceName: "Dishwashing Service", streetAddress: widget.serviceWorker.street)),
+                          );
                         },
                         child: const Text('Book Now')),
                   )
