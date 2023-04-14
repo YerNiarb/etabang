@@ -132,51 +132,49 @@ class FindServices extends StatelessWidget {
                             Container(
                                 margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                                 height: 100,
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        services[index].name,
-                                        textAlign: TextAlign.center,
-                                        maxLines: null,
-                                        style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            fontFamily: 'Poppins'),
-                                      ),
-                                      Row(
-                                        children: [
-                                          Container(
-                                            margin: const EdgeInsets.fromLTRB(
-                                                0, 0, 10, 0),
-                                            padding: EdgeInsets.all(8.0),
-                                            decoration: BoxDecoration(
-                                              color: Colors.lightBlue[50],
-                                              borderRadius:
-                                                  BorderRadius.circular(7.0),
-                                            ),
-                                            child: const Text(
-                                              '₱',
-                                              style: TextStyle(
-                                                  fontSize: 18,
-                                                  color: Colors.cyan),
-                                            ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      services[index].name,
+                                      textAlign: TextAlign.center,
+                                      maxLines: null,
+                                      style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Poppins'),
+                                    ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          margin: const EdgeInsets.fromLTRB(
+                                              0, 0, 10, 0),
+                                          padding: EdgeInsets.all(8.0),
+                                          decoration: BoxDecoration(
+                                            color: Colors.lightBlue[50],
+                                            borderRadius:
+                                                BorderRadius.circular(7.0),
                                           ),
-                                          Text(
-                                            '${services[index].hourlyPrice} / hour',
-                                            textAlign: TextAlign.center,
-                                            maxLines: null,
-                                            style: const TextStyle(
+                                          child: const Text(
+                                            '₱',
+                                            style: TextStyle(
                                                 fontSize: 18,
-                                                color: Color(0x97979797),
-                                                fontFamily: 'Poppins'),
-                                          )
-                                        ],
-                                      )
-                                    ],
-                                  ),
+                                                color: Colors.cyan),
+                                          ),
+                                        ),
+                                        Text(
+                                          '${services[index].hourlyPrice} / hour',
+                                          textAlign: TextAlign.center,
+                                          maxLines: null,
+                                          style: const TextStyle(
+                                              fontSize: 18,
+                                              color: Color(0x97979797),
+                                              fontFamily: 'Poppins'),
+                                        )
+                                      ],
+                                    )
+                                  ],
                                 ))
                           ],
                         ),
