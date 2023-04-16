@@ -141,7 +141,7 @@ class FindServices extends StatelessWidget {
                                       textAlign: TextAlign.center,
                                       maxLines: null,
                                       style: const TextStyle(
-                                          fontSize: 20,
+                                          fontSize: 18,
                                           fontWeight: FontWeight.bold,
                                           fontFamily: 'Poppins'),
                                     ),
@@ -159,7 +159,7 @@ class FindServices extends StatelessWidget {
                                           child: const Text(
                                             '₱',
                                             style: TextStyle(
-                                                fontSize: 18,
+                                                fontSize: 15,
                                                 color: Colors.cyan),
                                           ),
                                         ),
@@ -168,7 +168,7 @@ class FindServices extends StatelessWidget {
                                           textAlign: TextAlign.center,
                                           maxLines: null,
                                           style: const TextStyle(
-                                              fontSize: 18,
+                                              fontSize: 15,
                                               color: Color(0x97979797),
                                               fontFamily: 'Poppins'),
                                         )

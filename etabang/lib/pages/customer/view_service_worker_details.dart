@@ -118,7 +118,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                             style: const TextStyle(fontSize: 23)),
                         const Text(" / hour",
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 15,
                               fontFamily: 'Poppins',
                               color: Colors.grey,
                             )),
@@ -129,7 +129,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                     margin: const EdgeInsets.fromLTRB(0, 0, 0, 10.0),
                     child: Text("Housekeeping",
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                           fontFamily: 'Poppins',
                           color: Colors.grey,
                         )),
@@ -150,7 +150,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                         ),
                         Text("${kilometersAway} km away",
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: 15,
                               fontFamily: 'Poppins',
                               color: Colors.grey,
                             )),
@@ -163,7 +163,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                     margin: const EdgeInsets.fromLTRB(0, 25, 0, 0),
                     child: const Text("Address",
                         style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Poppins')),
                     
@@ -173,7 +173,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                     margin: const EdgeInsets.fromLTRB(0, 10, 0, 0),
                     child: Text("${widget.serviceWorker.street},",
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                           fontFamily: 'Poppins',
                           color: Colors.grey,
                         )),
@@ -185,7 +185,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                     child: Text(
                         "${widget.serviceWorker.city}, ${widget.serviceWorker.state}",
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                           fontFamily: 'Poppins',
                           color: Colors.grey,
                         )),
@@ -198,7 +198,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                     margin: const EdgeInsets.fromLTRB(0, 25, 0, 0),
                     child: const Text("Services",
                         style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Poppins')),
                     
@@ -218,7 +218,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                         ),
                         child: const Text(
                           'Caretaker Services',
-                          style: TextStyle(fontSize: 20, color: Colors.grey),
+                          style: TextStyle(fontSize: 15, color: Colors.grey),
                         ),
                       ),
                       Container(
@@ -233,7 +233,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                         ),
                         child: const Text(
                           'Laundry Services',
-                          style: TextStyle(fontSize: 20, color: Colors.grey),
+                          style: TextStyle(fontSize: 15, color: Colors.grey),
                         ),
                       ),
                       Container(
@@ -248,7 +248,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                         ),
                         child: const Text(
                           'Plumbing Services',
-                          style: TextStyle(fontSize: 20, color: Colors.grey),
+                          style: TextStyle(fontSize: 15, color: Colors.grey),
                         ),
                       ),
                       Container(
@@ -263,7 +263,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                         ),
                         child: const Text(
                           'Dishwashing Services',
-                          style: TextStyle(fontSize: 20, color: Colors.white),
+                          style: TextStyle(fontSize: 15, color: Colors.white),
                         ),
                       ),
                     ],
@@ -274,7 +274,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                     margin: const EdgeInsets.fromLTRB(0, 25, 0, 0),
                     child: const Text("Working Day | Hours",
                         style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Poppins')),
                     
@@ -284,7 +284,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                     margin: const EdgeInsets.fromLTRB(0, 10, 0, 0),
                     child: Text("${widget.serviceWorker.street},",
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                           fontFamily: 'Poppins',
                           color: Colors.grey,
                         )),
@@ -296,7 +296,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                     child: Text(
                         "Monday - Friday, 8:30am - 7:30pm",
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                           fontFamily: 'Poppins',
                           color: Colors.grey,
                         )),
@@ -308,7 +308,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                     margin: const EdgeInsets.fromLTRB(0, 25, 0, 0),
                     child: const Text("Feedbacks",
                         style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Poppins')),
                     
@@ -319,7 +319,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                     margin: const EdgeInsets.all(25),
                     child: const Text("No feedbacks.",
                         style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 15,
                             color: Colors.grey,
                             fontFamily: 'Poppins')),
                     
@@ -343,12 +343,16 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                             ),
                             textStyle: MaterialStateProperty.all<TextStyle>(
                               const TextStyle(
-                                  fontSize: 20, fontFamily: 'Poppins'),
+                                  fontSize: 18, fontFamily: 'Poppins'),
                             )),
                         onPressed: () async {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => BookService(serviceName: "Dishwashing Service", streetAddress: widget.serviceWorker.street)),
+                            MaterialPageRoute(builder: (context) => BookService(
+                              serviceName: "Dishwashing Service", 
+                              streetAddress: widget.serviceWorker.street, 
+                              hourlyPrice: widget.serviceWorker.hourlyPrice,)
+                            ),
                           );
                         },
                         child: const Text('Book Now')),

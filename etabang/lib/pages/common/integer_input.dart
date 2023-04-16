@@ -60,8 +60,8 @@ class _IntegerInputState extends State<IntegerInput> {
           onPressed: _value == widget.minValue ? null : _decrement,
           child: Icon(Icons.remove),
           style: ButtonStyle(
-            maximumSize: MaterialStateProperty.all(Size(25, 35)),
-            minimumSize: MaterialStateProperty.all(Size(25, 35)),
+            maximumSize: MaterialStateProperty.all(Size(20, 35)),
+            minimumSize: MaterialStateProperty.all(Size(20, 35)),
             padding: MaterialStateProperty.all(EdgeInsets.zero),
             iconSize: MaterialStateProperty.resolveWith<double>((Set<MaterialState> states) {
               return 10;
@@ -106,13 +106,21 @@ class _IntegerInputState extends State<IntegerInput> {
             controller: _controller,
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               border: InputBorder.none,
-              contentPadding: EdgeInsets.all(0),
+              contentPadding: EdgeInsets.symmetric(vertical: 0.5, horizontal: 0.5),
+            ),
+            style: const TextStyle(
+              fontSize: 12.0,
             ),
             onChanged: (value) {
               setState(() {
-                _value = int.parse(value);
+                try{
+                  _value = int.parse(value);
+                }catch(Exception){
+                  _value = 1;
+                }
+
                 if (_value < widget.minValue) {
                   _value = widget.minValue;
                   _controller.text = _value.toString();
@@ -129,8 +137,8 @@ class _IntegerInputState extends State<IntegerInput> {
           onPressed: _value == widget.maxValue ? null : _increment,
           child: Icon(Icons.add),
           style: ButtonStyle(
-            maximumSize: MaterialStateProperty.all(Size(25, 35)),
-            minimumSize: MaterialStateProperty.all(Size(25, 35)),
+            maximumSize: MaterialStateProperty.all(Size(20, 35)),
+            minimumSize: MaterialStateProperty.all(Size(20, 35)),
             padding: MaterialStateProperty.all(EdgeInsets.zero),
             iconSize: MaterialStateProperty.resolveWith<double>((Set<MaterialState> states) {
               return 15;

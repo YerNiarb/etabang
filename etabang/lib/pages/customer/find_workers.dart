@@ -161,7 +161,7 @@ class FindWorkers extends StatelessWidget {
                                   textAlign: TextAlign.left,
                                   maxLines: null,
                                   style: const TextStyle(
-                                      fontSize: 19,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                       fontFamily: 'Poppins'),
                                 ),
@@ -173,7 +173,7 @@ class FindWorkers extends StatelessWidget {
                                   textAlign: TextAlign.left,
                                   maxLines: null,
                                   style: const TextStyle(
-                                      fontSize: 17,
+                                      fontSize: 15,
                                       color: Color(0x97979797),
                                       fontFamily: 'Poppins'),
                                 ),
