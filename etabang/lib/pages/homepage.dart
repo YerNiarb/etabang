@@ -1,8 +1,7 @@
 import 'package:etabang/pages/customer/find_services.dart';
-import 'package:etabang/utils/slide_page_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
+import 'common/user_profile.dart';
+import 'customer/worker_tracker.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -16,8 +15,8 @@ class _HomepageState extends State<Homepage> {
   static const List<Widget> _screens = <Widget>[
     FindServices(),
     Text('Messages'),
-    Text('Navigate'),
-    Text('Profile'),
+    WorkerTracker(),
+    UserProfile(),
   ];
 
   void _onItemTapped(int index) {

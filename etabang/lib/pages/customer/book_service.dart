@@ -1,18 +1,19 @@
 import 'package:etabang/models/booking.dart';
 import 'package:etabang/models/payment_method.dart';
+import 'package:etabang/pages/customer/booking_confirmed.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:number_inc_dec/number_inc_dec.dart';
-
+import '../../models/service_worker.dart';
 import '../common/integer_input.dart';
 import 'location_selector.dart';
 
 class BookService extends StatefulWidget {
+  final ServiceWorker serviceWorker;
   final String serviceName;
   final String streetAddress;
   final double hourlyPrice;
-  const BookService({super.key, required this.serviceName, required this.streetAddress, required this.hourlyPrice});
+  const BookService({super.key, required this.serviceName, required this.streetAddress, required this.hourlyPrice, required this.serviceWorker});
 
   @override
   State<BookService> createState() => _BookServiceState();
@@ -32,9 +33,10 @@ class _BookServiceState extends State<BookService> {
   late GoogleMapController _mapController;
   final Set<Marker> _markers = {};
 
-  Booking? _bookingDetails = null; // Booking(latLong: LatLng(14.599512, 120.984222), city: "")
+  Booking? _bookingDetails = null;
   double subTotal = 0.00;
   double travelFee = 25.00;
+  int quantity = 1;
   TextEditingController qtyOfServiceInput = TextEditingController();
 
   List<PaymentMethod> paymentMethods = [
@@ -106,20 +108,6 @@ class _BookServiceState extends State<BookService> {
                     _currentStep = step;
                   })
                 },
-                onStepContinue: () {
-                  setState(() {
-                    if (_currentStep < 2) {
-                      _currentStep += 1;
-                    }
-                  });
-                },
-                onStepCancel: () {
-                  setState(() {
-                    if (_currentStep > 0) {
-                      _currentStep -= 1;
-                    }
-                  });
-                },
                 controlsBuilder: (BuildContext context, ControlsDetails details) {
                   return Expanded(
                     child: Row(
@@ -145,24 +133,31 @@ class _BookServiceState extends State<BookService> {
                               )),
                           onPressed: () async {
                             setState(() {
-                              if (_currentStep < 2) {
-                                _currentStep += 1;
+                              if(_currentStep == 2){
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => BookingConfirmed(serviceWorkerName: "${widget.serviceWorker.firstName} ${widget.serviceWorker.lastName}",)),
+                                );
                               }
 
-                              switch(_currentStep){
-                                case 0:
-                                  nextButtonText = "";
-                                  stepTitle = stepOneTitle;
-                                  break;
-                                case 1:
-                                  nextButtonText = "Review Payment and Location";
-                                  stepTitle = stepTwoTitle;
-                                  break;
-                                case 2:
-                                  nextButtonText = "Book Now";
-                                  stepTitle = stepThreeTitle;
-                                  break;
-                              }
+                              if (_currentStep < 2) {
+                                _currentStep += 1;
+
+                                switch(_currentStep){
+                                  case 0:
+                                    nextButtonText = "";
+                                    stepTitle = stepOneTitle;
+                                    break;
+                                  case 1:
+                                    nextButtonText = "Review Payment and Location";
+                                    stepTitle = stepTwoTitle;
+                                    break;
+                                  case 2:
+                                    nextButtonText = "Book Now";
+                                    stepTitle = stepThreeTitle;
+                                    break;
+                                }
+                              }                              
                             });
                           },
                           child: Text(nextButtonText)),
@@ -196,6 +191,7 @@ class _BookServiceState extends State<BookService> {
                                       maxValue: 99,
                                       onChanged: (value) {
                                         setState(() {
+                                          quantity = value;
                                           subTotal = (value * widget.hourlyPrice);
                                         });
                                       },
@@ -209,7 +205,6 @@ class _BookServiceState extends State<BookService> {
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
                                           fontFamily: 'Poppins'
-                                          // color: Colors.grey
                                         ),
                                       ),
                                     ),
@@ -223,7 +218,6 @@ class _BookServiceState extends State<BookService> {
                                             fontSize: 12,
                                             overflow: TextOverflow.ellipsis,
                                             fontWeight: FontWeight.bold,
-                                            // fontFamily: 'Poppins',
                                             color: Colors.grey
                                           ),
                                         ),
@@ -235,7 +229,7 @@ class _BookServiceState extends State<BookService> {
                             ),
                           ),
                           Container(
-                            margin: EdgeInsets.only(bottom: 20),
+                            margin: const EdgeInsets.only(bottom: 20),
                             child: InkWell(
                               onTap: () async {
                                 DateTime? selectedDate = await showDatePicker(
@@ -252,7 +246,7 @@ class _BookServiceState extends State<BookService> {
                               },
                               child: Card(
                                 child: Padding(
-                                  padding: EdgeInsets.fromLTRB(5, 25, 5, 25),
+                                  padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
                                   child: Row(
                                     children: [
                                        SizedBox(
@@ -296,7 +290,7 @@ class _BookServiceState extends State<BookService> {
                                         ),
                                       ),
                                       Container(
-                                        margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                        margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
                                         child: const SizedBox(
                                           width: 60,
                                           child: Icon(
@@ -313,7 +307,7 @@ class _BookServiceState extends State<BookService> {
                             ),
                           ),
                           Container(
-                            margin: EdgeInsets.only(bottom: 20),
+                            margin: const EdgeInsets.only(bottom: 20),
                             child: InkWell(
                               onTap: () async {
                                 TimeOfDay? seletedTime = await showTimePicker(
@@ -372,7 +366,7 @@ class _BookServiceState extends State<BookService> {
                                         ),
                                       ),
                                       Container(
-                                        margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                        margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
                                         child: const SizedBox(
                                           width: 60,
                                           child: Icon(
@@ -559,7 +553,7 @@ class _BookServiceState extends State<BookService> {
                               ),
                             ),
                             Container(
-                              margin: EdgeInsets.only(bottom: 20),
+                              margin: const EdgeInsets.only(bottom: 20),
                               child: Card(
                                 child: Padding(
                                   padding: EdgeInsets.fromLTRB(5, 25, 5, 25),
@@ -567,41 +561,233 @@ class _BookServiceState extends State<BookService> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Container(
+                                        width: double.infinity,
                                         margin: EdgeInsets.only(left: 20),
                                         child: const SizedBox(
                                           width: 200,
                                           child: Text(
-                                           "Payment Method",
-                                           overflow: TextOverflow.ellipsis,
-                                           style: TextStyle(
-                                             fontSize: 20,
-                                             fontWeight: FontWeight.bold,
-                                             fontFamily: 'Poppins'
-                                           ),
-                                              ),
+                                            "Payment Method",
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 19,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Poppins'
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                      // Expanded(
-                                      //   child: Container(
-                                      //     child: ListView.builder(
-                                      //       itemCount: paymentMethods.length,
-                                      //       itemBuilder: (BuildContext context, int index) {
-                                      //         return ListTile(
-                                      //           title: Text(paymentMethods[index].name),
-                                      //           onTap: () {
-                                      //             // Handle selection here
-                                      //           },
-                                      //         );
-                                      //       },
-                                      //     ),
-                                      //   ),
-                                      // )
+                                      Container(
+                                        margin: EdgeInsets.only(top: 20),
+                                        child: Row(
+                                          children: [
+                                             SizedBox(
+                                              width: 75,
+                                              child: Container(
+                                                height: 40,
+                                                decoration: const BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: Color(0xFFE3FBFF),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.wallet,
+                                                  color: Colors.cyan,
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              width: 200,
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: const [
+                                                  Text(
+                                                    "COD",
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontFamily: 'Poppins'
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    "Cash On Delivery",
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontFamily: 'Poppins',
+                                                      color: Colors.grey
+                                                    ),
+                                                  ),
+                                                ]
+                                              ),
+                                            ),
+                                            Container(
+                                              height: 30,
+                                                decoration: const BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: Color(0xFFE3FBFF),
+                                                ),
+                                              child: const SizedBox(
+                                                width: 60,
+                                                child: Icon(
+                                                  Icons.circle,
+                                                  color: Colors.cyan,
+                                                  size: 15,
+                                                ),
+                                              ),
+                                            )
+                                          ]
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
                               ),
-                          ),
-                          ]
+                            ),
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 5),
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: double.infinity,
+                                        margin: const EdgeInsets.only(left: 20),
+                                        child: const SizedBox(
+                                          width: 200,
+                                          child: Text(
+                                            "Summary",
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 19,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Poppins'
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        margin: const EdgeInsets.only(top: 20),
+                                        padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "${quantity}x ${widget.serviceName}",
+                                              maxLines: null,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                fontFamily: 'Poppins',
+                                                color: Colors.grey,
+                                                overflow: TextOverflow.clip
+                                              ),
+                                            ),
+                                            Text(
+                                              "₱ ${widget.hourlyPrice}",
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                color: Colors.grey,
+                                                overflow: TextOverflow.clip
+                                              ),
+                                            )
+                                          ]
+                                        ),
+                                      ),
+                                      Container(
+                                        margin: const EdgeInsets.only(top:10, left: 18, right: 18),
+                                        height: 1,
+                                        color: Colors.grey,
+                                      ),
+                                      Container(
+                                        margin: const EdgeInsets.only(top: 10),
+                                        padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text(
+                                              "SubTotal",
+                                              maxLines: null,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                fontFamily: 'Poppins',
+                                                color: Colors.grey,
+                                                overflow: TextOverflow.clip
+                                              ),
+                                            ),
+                                            Text(
+                                              "₱ $subTotal",
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                color: Colors.grey,
+                                                overflow: TextOverflow.clip
+                                              ),
+                                            )
+                                          ]
+                                        ),
+                                      ),
+                                      Container(
+                                        margin: const EdgeInsets.only(top: 10),
+                                        padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text(
+                                              "Travel Fee",
+                                              maxLines: null,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                fontFamily: 'Poppins',
+                                                color: Colors.grey,
+                                                overflow: TextOverflow.clip
+                                              ),
+                                            ),
+                                            Text(
+                                              "₱ $travelFee",
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                color: Colors.grey,
+                                                overflow: TextOverflow.clip
+                                              ),
+                                            )
+                                          ]
+                                        ),
+                                      ),
+                                      Container(
+                                        margin: const EdgeInsets.only(top: 10),
+                                        padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text(
+                                              "Total",
+                                              maxLines: null,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                fontFamily: 'Poppins',
+                                                color: Colors.grey,
+                                                overflow: TextOverflow.clip,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(
+                                              "₱ ${subTotal + travelFee}",
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                color: Colors.grey,
+                                                overflow: TextOverflow.clip,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            )
+                                          ]
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

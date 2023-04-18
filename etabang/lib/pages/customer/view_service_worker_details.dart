@@ -351,7 +351,8 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                             MaterialPageRoute(builder: (context) => BookService(
                               serviceName: "Dishwashing Service", 
                               streetAddress: widget.serviceWorker.street, 
-                              hourlyPrice: widget.serviceWorker.hourlyPrice,)
+                              hourlyPrice: widget.serviceWorker.hourlyPrice,
+                              serviceWorker: widget.serviceWorker,)
                             ),
                           );
                         },

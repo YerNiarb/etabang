@@ -14,13 +14,12 @@ class SignIn extends StatelessWidget {
     TextEditingController userName = TextEditingController();
     TextEditingController password = TextEditingController();
 
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Container(
-          margin: const EdgeInsets.fromLTRB(50, 40, 50, 0),
-          child: ListView(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Container(
+        padding: const EdgeInsets.fromLTRB(50, 40, 50, 0),
+        child: SingleChildScrollView(
+          child: Column(
             children: [
              Container(
                 margin: const EdgeInsets.fromLTRB(0, 50, 0, 40),
@@ -55,7 +54,7 @@ class SignIn extends StatelessWidget {
                   ],
                 ),
               ),
-    
+            
               Container(
                 margin: const EdgeInsets.fromLTRB(0, 0, 0, 60),
                 child: Column(
@@ -86,7 +85,7 @@ class SignIn extends StatelessWidget {
                   ],
                 ),
               ),
-    
+            
               TextButton(
                 style: ButtonStyle(
                     backgroundColor:
@@ -104,14 +103,14 @@ class SignIn extends StatelessWidget {
                       const TextStyle(fontSize: 20, fontFamily: 'Poppins'),
                     )),
                 onPressed: () async {
-                  if(userName.text.isNotEmpty && password.text.isNotEmpty){
+                  // if(userName.text.isNotEmpty && password.text.isNotEmpty){
                     isLoggedIn = true;
-
+        
                     SharedPreferences prefs = await SharedPreferences.getInstance();
                     await prefs.setBool('isLoggedIn', true);
-
+        
                     bool isFirstTime = prefs.getBool('isFirstLogin') ?? true;
-
+        
                     if (isFirstTime) {
                         Navigator.pushReplacement(
                           context,
@@ -124,18 +123,18 @@ class SignIn extends StatelessWidget {
                         MaterialPageRoute(builder: (context) => const Homepage()),
                       );
                     }
-                  }
-                  else{
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Enter username or password'),
-                      ),
-                    );
-                  }
+                  // }
+                  // else{
+                  //   ScaffoldMessenger.of(context).showSnackBar(
+                  //     const SnackBar(
+                  //       content: Text('Enter username or password'),
+                  //     ),
+                  //   );
+                  // }
                 },
                 child: const Text('Sign In')
               ),
-    
+            
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
                 child: Row(
@@ -169,8 +168,8 @@ class SignIn extends StatelessWidget {
                     ),
               ) 
             ]),
-        )
-      ),
+        ),
+      )
     );
   }
 }

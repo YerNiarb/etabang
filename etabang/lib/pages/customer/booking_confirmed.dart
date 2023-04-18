@@ -1,15 +1,14 @@
-import 'package:etabang/pages/homepage.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../homepage.dart';
 
-class WelcomePage extends StatelessWidget {
-  const WelcomePage({super.key});
+class BookingConfirmed extends StatelessWidget {
+  final String serviceWorkerName;
+
+  const BookingConfirmed({super.key, required this.serviceWorkerName});
 
   @override
   Widget build(BuildContext context) {
-    String name = "Christian";
-
-     return Scaffold(
+    return Scaffold(
       backgroundColor: Colors.white,
       body: Container(
         
@@ -27,8 +26,8 @@ class WelcomePage extends StatelessWidget {
               
                 Container(
                   margin: const EdgeInsets.fromLTRB(0, 0, 0, 15),
-                  child: Text('Welcome $name',
-                      style: const TextStyle(
+                  child: const Text('Success!',
+                      style:  TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.bold,
                           color: Colors.cyan,
@@ -37,10 +36,10 @@ class WelcomePage extends StatelessWidget {
                 
                 Container(
                     margin: const EdgeInsets.fromLTRB(0, 0, 0, 30),
-                    child: const Text(
-                      'Have some problem today?\nDon’t worry, now you are part of e-Tabang.\nLets us help you.',
+                    child: Text(
+                      'Payment successful. You’re now connected directly with $serviceWorkerName. Please wait for a while.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 18,
                           color: Color(0x97979797),
                           fontFamily: 'Poppins'),
@@ -64,14 +63,12 @@ class WelcomePage extends StatelessWidget {
                         const TextStyle(fontSize: 20, fontFamily: 'Poppins'),
                       )),
                   onPressed: () async {
-                     SharedPreferences prefs = await SharedPreferences.getInstance();
-                      await prefs.setBool('isFirstLogin', false);
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => Homepage()),
+                        MaterialPageRoute(builder: (context) => const Homepage()),
                       );
                   },
-                  child: const Text('Go to Homepage')
+                  child: const Text('Back to Home')
                 ),
               ]
             ),
