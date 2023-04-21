@@ -22,7 +22,7 @@ void main() async {
 class Initialize extends StatelessWidget {
   final bool isFirstTime;
   final bool isLoggedIn;
-  const Initialize({ required this.isFirstTime, required this.isLoggedIn });
+  const Initialize({super.key,  required this.isFirstTime, required this.isLoggedIn });
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +35,7 @@ class Initialize extends StatelessWidget {
     // TODO: Add authentication check
 
     return MaterialApp(
-      home: const SignIn(), // isLoggedIn ? const Homepage() : const SignIn(),
+      home:  isLoggedIn ? const Homepage() : const SignIn(),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.cyan),
         disabledColor: Colors.grey,
