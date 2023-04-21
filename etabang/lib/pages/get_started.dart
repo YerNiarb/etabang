@@ -21,7 +21,7 @@ class GetStarted extends StatelessWidget {
                 margin: const EdgeInsets.fromLTRB(0, 0, 0, 15),
                 child: const Text('e-Tabang',
                     style: TextStyle(
-                        fontSize: 40,
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
                         color: Colors.cyan,
                         fontFamily: 'Helvetica')),
@@ -32,7 +32,7 @@ class GetStarted extends StatelessWidget {
                     'We make house care services simple.\nFind the most suited staff for you.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         color: Color(0x97979797),
                         fontFamily: 'Poppins'),
                   )

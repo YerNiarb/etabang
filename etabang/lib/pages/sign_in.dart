@@ -34,14 +34,14 @@ class SignIn extends StatelessWidget {
                     const Text(
                       'Username',
                       style: TextStyle(
-                            fontSize: 19.5,
+                            fontSize:  15,
                             fontFamily: 'Poppins'
                       )
                     ),
                     TextField(
                       controller: userName,
                       style: const TextStyle(
-                            fontSize: 19.5,
+                            fontSize:  15,
                             fontFamily: 'Poppins'
                       ),
                       cursorColor: Colors.cyan,
@@ -63,7 +63,7 @@ class SignIn extends StatelessWidget {
                     const Text(
                       'Password',
                       style: TextStyle(
-                            fontSize: 19.5,
+                            fontSize:  15,
                             fontFamily: 'Poppins'
                       )
                     ),
@@ -72,7 +72,7 @@ class SignIn extends StatelessWidget {
                       obscureText: true,
                       keyboardType: TextInputType.visiblePassword,
                       style: const TextStyle(
-                            fontSize: 19.5,
+                            fontSize:  15,
                             fontFamily: 'Poppins',
                       ),
                       cursorColor: Colors.cyan,

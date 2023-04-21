@@ -35,7 +35,7 @@ class Initialize extends StatelessWidget {
     // TODO: Add authentication check
 
     return MaterialApp(
-      home: isLoggedIn ? const Homepage() : const SignIn(),
+      home: const SignIn(), // isLoggedIn ? const Homepage() : const SignIn(),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.cyan),
         disabledColor: Colors.grey,

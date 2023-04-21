@@ -21,7 +21,7 @@ class _StarRatingState extends State<StarRating> {
         return Icon(
           index < widget.rating.floor() ? Icons.star : Icons.star_border,
           color: Color(0xFFFEA41D),
-          size: widget.size ?? 30.0,
+          size: widget.size,
         );
       }),
     );
