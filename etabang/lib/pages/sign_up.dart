@@ -1,11 +1,17 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:etabang/connector/db_connector.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import 'package:etabang/enums/user_type.dart';
 import 'package:etabang/pages/sign_in.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 
+import '../connector/encryption.dart';
 import '../global/vars.dart';
 
 class SignUp extends StatefulWidget {
@@ -16,7 +22,18 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
+  late DbConnector dbConnector;
+  final _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
   UserType userType = UserType.customer;
+  TextEditingController firstName = TextEditingController();
+  TextEditingController lastName = TextEditingController();
+  TextEditingController userName = TextEditingController();
+  TextEditingController password = TextEditingController();
+  TextEditingController phoneNumber = TextEditingController();
+  DateTime birthdate = DateTime.now();
+  bool isLoading = false;
+  TextEditingController birthdateController = TextEditingController();
+  late LatLng currentLocation;
 
   final List<File> _selectedFiles = [];
 
@@ -55,15 +72,92 @@ class _SignUpState extends State<SignUp> {
     );
   }
 
+  Future<void> _registerUser() async {
+    try {
+      String insertUserQuery = """ 
+        INSERT INTO public."Users"(
+          "FirstName", "LastName", "Password", "PhoneNumber", "BirthDate", "UserType", "CurrentLocation")
+          VALUES (
+            '${firstName.text}', 
+            '${lastName.text}', 
+            '${password.text}',
+            '${phoneNumber.text}', 
+            '$birthdate',
+            ${userType.index}, 
+            ST_Point(${currentLocation.latitude}, ${currentLocation.longitude})
+          )
+        RETURNING "Id";
+      """;
+
+      final insertResult = await dbConnector.query(insertUserQuery);
+      final newUserId = insertResult[0];
+      final userId = newUserId.values.first["Id"];
+
+      if(_selectedFiles.isNotEmpty){
+        for (var file in _selectedFiles) {
+          final bytes = await File(file.path).readAsBytes();
+          final fileBase64 = base64Encode(bytes);
+          final fileName = file.path.split('/').last;
+
+          String insertUserDocumentQuery = """ 
+            INSERT INTO public."UserDocuments"
+              ("UserId", "Document", "FileType", "FileName", "FileSize")
+              VALUES($userId, '$fileBase64', '${fileName.split('.').last}', '$fileName', '${file.lengthSync()}')
+          """;
+
+          await dbConnector.query(insertUserDocumentQuery);
+        }
+      }
+
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      } );
+       ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to connect to the database: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      return;
+    }
+  }
+
+  Future<LatLng> _initializeLocation() async {
+     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      if(position == null){
+        return const LatLng(14.599512, 120.984222);
+      }
+
+      return LatLng(position.longitude, position.longitude);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    dbConnector = DbConnector();
+    dbConnector.connect();
+    _initializeLocation().then((location) {
+      // Set the state when the initialization is complete.
+      setState(() {
+        currentLocation = location;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    dbConnector.close();
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    TextEditingController fullName = TextEditingController();
-    TextEditingController userName = TextEditingController();
-    TextEditingController password = TextEditingController();
-    TextEditingController phoneNumber = TextEditingController();
-    DateTime birthdate = DateTime.now();
-    TextEditingController birthdateController = TextEditingController();
-
     return Scaffold(
       body: Container(
         margin: const EdgeInsets.fromLTRB(30, 100, 30, 0),
@@ -168,7 +262,36 @@ class _SignUpState extends State<SignUp> {
                         )
                       ),
                       TextField(
-                        controller: fullName,
+                        controller: firstName,
+                        style: const TextStyle(
+                              fontSize:  15,
+                              fontFamily: 'Poppins'
+                        ),
+                        cursorColor: Colors.cyan,
+                        decoration: const InputDecoration(
+                          focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.cyan, width: 2.0),
+                          ),
+                        )
+                      ),
+                    ],
+                  ),
+                ),
+
+                Container(
+                  margin: const EdgeInsets.fromLTRB(0, 0, 0, 30),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Last Name',
+                        style: TextStyle(
+                              fontSize:  15,
+                              fontFamily: 'Poppins'
+                        )
+                      ),
+                      TextField(
+                        controller: lastName,
                         style: const TextStyle(
                               fontSize:  15,
                               fontFamily: 'Poppins'
@@ -291,8 +414,8 @@ class _SignUpState extends State<SignUp> {
                           DateTime? selectedDate = await showDatePicker(
                             context: context,
                             initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime(2100),
+                            firstDate: DateTime(1900),
+                            lastDate: DateTime.now(),
                           );
                           if (selectedDate != null) {
                             setState(() {
@@ -394,10 +517,13 @@ class _SignUpState extends State<SignUp> {
                         textStyle: MaterialStateProperty.all<TextStyle>(
                           const TextStyle(fontSize:  15, fontFamily: 'Poppins'),
                         )),
-                    onPressed: () {
+                    onPressed: isLoading? null :() async {
+                      setState(() {
+                        isLoading = true;
+                      });
                       if(userName.text.isNotEmpty && password.text.isNotEmpty){
-                        isLoggedIn = true;
-                        Navigator.push(
+                        await _registerUser(); 
+                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const SignIn()),
                         );
@@ -410,12 +536,12 @@ class _SignUpState extends State<SignUp> {
                         );
                       }
                     },
-                    child: const Text('Sign Up')
+                    child: isLoading? const CircularProgressIndicator(color: Colors.white,) : const Text('Sign Up')
                   ),
                 ),
 
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                isLoading ? const SizedBox(height: 10,) : Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -445,7 +571,7 @@ class _SignUpState extends State<SignUp> {
                         )
                       ],
                     ),
-              ) 
+              ), 
             ]
           )
         ),

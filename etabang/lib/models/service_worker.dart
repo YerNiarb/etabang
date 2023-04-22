@@ -6,6 +6,7 @@ class ServiceWorker extends User {
   double currentLocationLong;
 
   ServiceWorker({
+    required super.id,
     required super.firstName, 
     required super.lastName, 
     required super.street, 

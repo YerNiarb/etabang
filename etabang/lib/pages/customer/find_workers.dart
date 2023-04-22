@@ -22,6 +22,7 @@ class FindWorkers extends StatelessWidget {
 
     List<ServiceWorker> availableWorkers = [
       ServiceWorker(
+        id: 0,
           firstName: 'John',
           lastName: 'Doe',
           city: 'Polomolok',
@@ -30,6 +31,7 @@ class FindWorkers extends StatelessWidget {
           userName: 'john2424',
           hourlyPrice: 100),
       ServiceWorker(
+        id: 0,
           firstName: 'Katherine',
           lastName: 'Doe',
           city: 'Polomolok',
@@ -38,6 +40,7 @@ class FindWorkers extends StatelessWidget {
           userName: 'john2424',
           hourlyPrice: 100),
       ServiceWorker(
+        id: 0,
           firstName: 'Jesse',
           lastName: 'Doe',
           city: 'Polomolok',
@@ -46,6 +49,7 @@ class FindWorkers extends StatelessWidget {
           userName: 'john2424',
           hourlyPrice: 100),
       ServiceWorker(
+        id: 0,
           firstName: 'Stephen',
           lastName: 'Doe',
           city: 'Polomolok',

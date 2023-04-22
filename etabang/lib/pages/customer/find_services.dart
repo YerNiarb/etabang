@@ -1,41 +1,68 @@
 import 'package:etabang/pages/customer/find_workers.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/service.dart';
 
-class FindServices extends StatelessWidget {
+class FindServices extends StatefulWidget {
   const FindServices({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    String customerName = "Christian";
-    TextEditingController textFilter = TextEditingController();
-    CircleAvatar defaultAvatar = CircleAvatar(
-        radius: 30,
-        backgroundColor: Colors.grey[300],
-        child: const Text(
-          'CD',
-          style: TextStyle(fontSize: 24, color: Colors.white70),
-        ));
+  State<FindServices> createState() => _FindServicesState();
+}
 
-    List<Service> services = [
-      Service(
-          name: "Laundry Services",
-          hourlyPrice: 100,
-          imageUrl: 'assets/images/services/caretaker.jfif'),
-      Service(
-          name: "Caretaker Services",
-          hourlyPrice: 100,
-          imageUrl: 'assets/images/services/caretaker.jfif'),
-      Service(
-          name: "Plumbing Services",
-          hourlyPrice: 100,
-          imageUrl: 'assets/images/services/caretaker.jfif'),
-      Service(
-          name: "Dishwashing Services",
-          hourlyPrice: 100,
-          imageUrl: 'assets/images/services/caretaker.jfif'),
-    ];
+class _FindServicesState extends State<FindServices> {
+  String userName = "";
+  String userInitials = "";
+  TextEditingController textFilter = TextEditingController();
+
+
+  List<Service> services = [
+    Service(
+        name: "Laundry Services",
+        hourlyPrice: 100,
+        imageUrl: 'assets/images/services/caretaker.jfif'),
+    Service(
+        name: "Caretaker Services",
+        hourlyPrice: 100,
+        imageUrl: 'assets/images/services/caretaker.jfif'),
+    Service(
+        name: "Plumbing Services",
+        hourlyPrice: 100,
+        imageUrl: 'assets/images/services/caretaker.jfif'),
+    Service(
+        name: "Dishwashing Services",
+        hourlyPrice: 100,
+        imageUrl: 'assets/images/services/caretaker.jfif'),
+  ];
+
+  Future<void> _loadPreferences() async {
+    await Future.delayed(Duration.zero);
+   SharedPreferences prefs = await SharedPreferences.getInstance();
+    String loggedInUserfirstName = prefs.getString('loggedInUserfirstName') ?? "";
+    String loggedInUserlastName = prefs.getString('loggedInUserlastName') ?? "";
+
+    setState(() {
+      userName = loggedInUserfirstName;
+      userInitials = "${String.fromCharCode(loggedInUserfirstName.codeUnitAt(0))}${String.fromCharCode(loggedInUserlastName.codeUnitAt(0))}";
+    });
+  }
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    CircleAvatar defaultAvatar = CircleAvatar(
+      radius: 30,
+      backgroundColor: Colors.grey[300],
+      child: Text(
+        userInitials,
+        style: TextStyle(fontSize: 24, color: Colors.white70),
+    ));
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -51,9 +78,9 @@ class FindServices extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Hi $customerName',
+                    Text('Hi $userName',
                         style: const TextStyle(
-                            fontSize: 35,
+                            fontSize: 30,
                             fontWeight: FontWeight.bold,
                             color: Colors.cyan,
                             fontFamily: 'Helvetica')),

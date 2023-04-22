@@ -1,19 +1,44 @@
+import 'package:etabang/connector/encryption.dart';
 import 'package:etabang/global/vars.dart';
-import 'package:etabang/pages/customer/find_services.dart';
 import 'package:etabang/pages/homepage.dart';
 import 'package:etabang/pages/sign_up.dart';
 import 'package:etabang/pages/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class SignIn extends StatelessWidget {
+import '../connector/db_connector.dart';
+import '../models/user.dart';
+
+class SignIn extends StatefulWidget {
   const SignIn({super.key});
-  
+
+  @override
+  State<SignIn> createState() => _SignInState();
+}
+
+class _SignInState extends State<SignIn> {
+  late DbConnector dbConnector;
+
+  TextEditingController userName = TextEditingController();
+
+  TextEditingController passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    dbConnector = DbConnector();
+    dbConnector.connect();
+  }
+
+  @override
+  void dispose() {
+    dbConnector.close();
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    TextEditingController userName = TextEditingController();
-    TextEditingController password = TextEditingController();
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: Container(
@@ -68,7 +93,7 @@ class SignIn extends StatelessWidget {
                       )
                     ),
                     TextField(
-                      controller: password,
+                      controller: passwordController,
                       obscureText: true,
                       keyboardType: TextInputType.visiblePassword,
                       style: const TextStyle(
@@ -103,34 +128,84 @@ class SignIn extends StatelessWidget {
                       const TextStyle(fontSize: 20, fontFamily: 'Poppins'),
                     )),
                 onPressed: () async {
-                  // if(userName.text.isNotEmpty && password.text.isNotEmpty){
-                    isLoggedIn = true;
-        
-                    SharedPreferences prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('isLoggedIn', true);
-        
-                    bool isFirstTime = prefs.getBool('isFirstLogin') ?? true;
-        
-                    if (isFirstTime) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const WelcomePage()),
+                  if(userName.text.isNotEmpty && passwordController.text.isNotEmpty){        
+                    try {
+                      String query = """ 
+                        SELECT "Id", "FirstName", "LastName", "Username", "Password", "UserType", "City", "State", "Street"
+                          FROM public."Users"
+                          WHERE "Username"='${userName.text}'
+                          LIMIT 1;
+                      """;
+
+                      final result = await dbConnector.query(query);
+                      
+                      if(result.isEmpty){
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Username or password is incorrect'),
+                            backgroundColor: Colors.red,
+                          ),
                         );
-                      } else {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const Homepage()),
+                      }else{
+                        final user = result[0];
+                        var userId = user.values.first["Id"];
+                        String? firstname = user.values.first["FirstName"].toString();
+                        String? lastname = user.values.first["LastName"];
+                        String? username = user.values.first["Username"];
+                        String? password = user.values.first["Password"];
+                        String? city = user.values.first["City"];
+                        String? state = user.values.first["State"];
+                        String? street = user.values.first["Street"];
+                        var userType = user.values.first["UserType"];
+
+                        //check password
+                        if(passwordController.text == password){
+                          SharedPreferences prefs = await SharedPreferences.getInstance();
+                          await prefs.setBool('isLoggedIn', true);
+                          bool isFirstTime = prefs.getBool('isFirstLogin') ?? true;
+
+                          await prefs.setString('loggedInUserfirstName', firstname);
+                          await prefs.setString('loggedInUserlastName', lastname ?? "");
+                          await prefs.setInt('loggedInUserId', userId);
+                          await prefs.setInt('loggedInUserType', userType);
+
+                          if (isFirstTime) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => WelcomePage(name: firstname)),
+                              );
+                          } else {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const Homepage()),
+                            );
+                          }
+                        }else{
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Invalid username or password'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Enter username or password'),
+                          backgroundColor: Colors.red,
+                        ),
                       );
                     }
-                  // }
-                  // else{
-                  //   ScaffoldMessenger.of(context).showSnackBar(
-                  //     const SnackBar(
-                  //       content: Text('Enter username or password'),
-                  //     ),
-                  //   );
-                  // }
+                  }
+                  else{
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Enter username or password'),
+                      ),
+                    );
+                  }
                 },
                 child: const Text('Sign In')
               ),

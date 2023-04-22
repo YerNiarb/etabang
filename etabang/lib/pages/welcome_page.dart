@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WelcomePage extends StatelessWidget {
-  const WelcomePage({super.key});
+  String? name = "";
+
+  WelcomePage({super.key, this.name});
 
   @override
   Widget build(BuildContext context) {
-    String name = "Christian";
 
      return Scaffold(
       backgroundColor: Colors.white,
