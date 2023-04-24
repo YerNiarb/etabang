@@ -10,7 +10,9 @@ import 'package:etabang/pages/sign_in.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:postgres/postgres.dart';
 
+import '../connector/db_connection.dart';
 import '../connector/encryption.dart';
 import '../global/vars.dart';
 
@@ -22,7 +24,6 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
-  late DbConnector dbConnector;
   final _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
   UserType userType = UserType.customer;
   TextEditingController firstName = TextEditingController();
@@ -74,9 +75,11 @@ class _SignUpState extends State<SignUp> {
 
   Future<void> _registerUser() async {
     try {
+      PostgreSQLConnection connection = await DbConnection().getConnection();
+
       String insertUserQuery = """ 
         INSERT INTO public."Users"(
-          "FirstName", "LastName", "Password", "PhoneNumber", "BirthDate", "UserType", "CurrentLocation")
+          "FirstName", "LastName", "Password", "PhoneNumber", "BirthDate", "UserType", "CurrentLocation", "Username")
           VALUES (
             '${firstName.text}', 
             '${lastName.text}', 
@@ -84,12 +87,13 @@ class _SignUpState extends State<SignUp> {
             '${phoneNumber.text}', 
             '$birthdate',
             ${userType.index}, 
-            ST_Point(${currentLocation.latitude}, ${currentLocation.longitude})
+            ST_Point(${currentLocation.latitude}, ${currentLocation.longitude}),
+            '${userName.text}'
           )
         RETURNING "Id";
       """;
 
-      final insertResult = await dbConnector.query(insertUserQuery);
+      final insertResult = await connection.mappedResultsQuery(insertUserQuery);
       final newUserId = insertResult[0];
       final userId = newUserId.values.first["Id"];
 
@@ -105,7 +109,7 @@ class _SignUpState extends State<SignUp> {
               VALUES($userId, '$fileBase64', '${fileName.split('.').last}', '$fileName', '${file.lengthSync()}')
           """;
 
-          await dbConnector.query(insertUserDocumentQuery);
+          await connection.mappedResultsQuery(insertUserDocumentQuery);
         }
       }
 
@@ -139,21 +143,12 @@ class _SignUpState extends State<SignUp> {
   @override
   void initState() {
     super.initState();
-    dbConnector = DbConnector();
-    dbConnector.connect();
     _initializeLocation().then((location) {
       // Set the state when the initialization is complete.
       setState(() {
         currentLocation = location;
       });
     });
-  }
-
-  @override
-  void dispose() {
-    dbConnector.close();
-
-    super.dispose();
   }
 
   @override

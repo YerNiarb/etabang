@@ -1,18 +1,18 @@
-// import 'package:etabang/pages/customer/find_services.dart';
-// import 'package:etabang/pages/get_started.dart';
 import 'package:etabang/pages/get_started.dart';
 import 'package:etabang/pages/homepage.dart';
 import 'package:etabang/pages/sign_in.dart';
-// import 'package:etabang/pages/sign_up.dart';
-// import 'package:etabang/pages/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'connector/db_connection.dart';
 
 void main() async { 
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
+  DbConnection dbConnection = DbConnection();
+  await dbConnection.getConnection();
   bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
-  bool isLoggedIn = prefs.getBool('isLoggedIn') ?? true;
+  bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
   runApp(MaterialApp(
     home: Initialize(isFirstTime: isFirstTime, isLoggedIn: isLoggedIn,),

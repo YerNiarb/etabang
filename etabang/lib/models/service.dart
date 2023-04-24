@@ -1,7 +1,8 @@
 class Service {
+  int id;
   String name;
-  int hourlyPrice;
+  double hourlyPrice;
   String imageUrl;
 
-  Service({required this.name, required this.hourlyPrice, this.imageUrl = ""});
+  Service({required this.name, required this.hourlyPrice, this.imageUrl = "", required this.id});
 }

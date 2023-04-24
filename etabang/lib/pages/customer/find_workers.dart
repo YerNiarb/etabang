@@ -1,63 +1,92 @@
-import 'package:etabang/pages/common/drawer.dart';
 import 'package:etabang/pages/customer/view_service_worker_details.dart';
 import 'package:flutter/material.dart';
+import 'package:postgres/postgres.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../connector/db_connection.dart';
 import '../../global/vars.dart';
 import '../../models/service_worker.dart';
 import '../homepage.dart';
 
-class FindWorkers extends StatelessWidget {
-  const FindWorkers({super.key});
+class FindWorkers extends StatefulWidget {
+  final int serviceId;
+  FindWorkers({super.key, required this.serviceId});
+
+  @override
+  State<FindWorkers> createState() => _FindWorkersState();
+}
+
+class _FindWorkersState extends State<FindWorkers> {
+  String userName = "";
+  String userInitials = "";
+  TextEditingController textFilter = TextEditingController();
+      
+  List<ServiceWorker> availableWorkers = [];
+
+  Future<void> _loadPreferences() async {
+    await Future.delayed(Duration.zero);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String loggedInUserfirstName = prefs.getString('loggedInUserfirstName') ?? "";
+    String loggedInUserlastName = prefs.getString('loggedInUserlastName') ?? "";
+
+    setState(() {
+      userName = loggedInUserfirstName;
+      userInitials = "${String.fromCharCode(loggedInUserfirstName.codeUnitAt(0))}${String.fromCharCode(loggedInUserlastName.codeUnitAt(0))}";
+    });
+  }
+
+  Future<void> _getAvailableWorkers() async {
+    PostgreSQLConnection connection = await DbConnection().getConnection();
+
+    String query = """
+        SELECT u."FirstName", u."LastName", s."Name" as "ServiceName", ss."ServiceId" as "ServiceId", ss."StaffId" as "StaffId", s."HourlyRate" as "HourlyRate"
+          FROM "StaffServices" ss 
+          LEFT JOIN "Users" u ON ss."StaffId" = u."Id"  
+          LEFT JOIN "Services" s ON ss."ServiceId" = s."Id"
+          WHERE ss."ServiceId" = ${widget.serviceId} AND (u."FirstName" ILIKE '%${textFilter.text}%' OR u."LastName" ILIKE '%${textFilter.text}%');
+    """;
+    
+    final results = await connection.mappedResultsQuery(query);
+    List<ServiceWorker> fetchedWorkers = [];
+
+    if(results.isNotEmpty){
+      for (var result in results) {
+        var fetched = result;
+        fetchedWorkers.add(
+          ServiceWorker(
+            id: fetched["StaffServices"]?["StaffId"], 
+            firstName: fetched["Users"]?["FirstName"], 
+            lastName: fetched["Users"]?["LastName"], 
+            street: "", 
+            city: "", 
+            state: "", 
+            userName: "",
+            hourlyPrice: fetched["Services"]?["HourlyRate"])
+        );
+      }
+    }
+
+    setState(() {
+      availableWorkers = fetchedWorkers;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getAvailableWorkers(); 
+    _loadPreferences();
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    String customerName = "Christian";
-    TextEditingController textFilter = TextEditingController();
     CircleAvatar defaultAvatar = CircleAvatar(
-        radius: 30,
-        backgroundColor: Colors.grey[300],
-        child: const Text(
-          'CD',
-          style: TextStyle(fontSize: 24, color: Colors.white70),
-        ));
-
-    List<ServiceWorker> availableWorkers = [
-      ServiceWorker(
-        id: 0,
-          firstName: 'John',
-          lastName: 'Doe',
-          city: 'Polomolok',
-          state: 'South Cotabato',
-          street: '1103 Champaca St.',
-          userName: 'john2424',
-          hourlyPrice: 100),
-      ServiceWorker(
-        id: 0,
-          firstName: 'Katherine',
-          lastName: 'Doe',
-          city: 'Polomolok',
-          state: 'South Cotabato',
-          street: '1103 Champaca St.',
-          userName: 'john2424',
-          hourlyPrice: 100),
-      ServiceWorker(
-        id: 0,
-          firstName: 'Jesse',
-          lastName: 'Doe',
-          city: 'Polomolok',
-          state: 'South Cotabato',
-          street: '1103 Champaca St.',
-          userName: 'john2424',
-          hourlyPrice: 100),
-      ServiceWorker(
-        id: 0,
-          firstName: 'Stephen',
-          lastName: 'Doe',
-          city: 'Polomolok',
-          state: 'South Cotabato',
-          street: '1103 Champaca St.',
-          userName: 'john2424',
-          hourlyPrice: 100),
-    ];
+      radius: 30,
+      backgroundColor: Colors.grey[300],
+      child: Text(
+        userInitials,
+        style: TextStyle(fontSize: 24, color: Colors.white70),
+      ));
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -91,25 +120,26 @@ class FindWorkers extends StatelessWidget {
             Container(
               margin: const EdgeInsets.fromLTRB(0, 20, 0, 50),
               child: TextField(
-                  cursorColor: Colors.grey,
-                  controller: textFilter,
-                  style: const TextStyle(fontSize: 19.5, fontFamily: 'Poppins'),
-                  decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                          borderSide: BorderSide.none),
-                      hintText: 'Search',
-                      hintStyle: TextStyle(
-                          fontSize: 19.5,
-                          fontFamily: 'Poppins',
-                          color: Colors.grey[400]),
-                      prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
-                      labelStyle: const TextStyle(
-                          fontSize: 19.5, fontFamily: 'Poppins'),
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                      focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey)))),
+                onSubmitted: (value) async => await _getAvailableWorkers(),
+                cursorColor: Colors.grey,
+                controller: textFilter,
+                style: const TextStyle(fontSize: 15, fontFamily: 'Poppins'),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                        borderSide: BorderSide.none),
+                    hintText: 'Search',
+                    hintStyle: TextStyle(
+                        fontSize: 15,
+                        fontFamily: 'Poppins',
+                        color: Colors.grey[400]),
+                    prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                    labelStyle: const TextStyle(
+                        fontSize: 15, fontFamily: 'Poppins'),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey)))),
             ),
             Container(
               margin: const EdgeInsets.fromLTRB(0, 0, 0, 30),
@@ -125,12 +155,17 @@ class FindWorkers extends StatelessWidget {
                   ]),
             ),
             Expanded(
-              child: GridView.count(
+              child: availableWorkers.isEmpty
+                  ? Container(
+                    margin: const EdgeInsets.only(top: 120),
+                    child: const Text("No staff found.", style: TextStyle(color: Colors.grey, fontFamily: 'Poppins', fontSize: 18),),
+                  )
+                  : GridView.count(
                 crossAxisCount: 2,
                 childAspectRatio: 0.85,
                 padding: EdgeInsets.all(5.0),
                 children: List.generate(availableWorkers.length, (index) {
-                  return InkWell(
+                  return  InkWell(
                      onTap: () {
                       Navigator.push(
                         context,

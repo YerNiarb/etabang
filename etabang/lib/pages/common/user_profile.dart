@@ -176,9 +176,12 @@ class _UserProfileState extends State<UserProfile> {
                     onPressed: () async {
                        SharedPreferences prefs = await SharedPreferences.getInstance();
                         await prefs.setBool('isFirstLogin', true);
-                        Navigator.pushReplacement(
+                        await prefs.setBool('isLoggedIn', false);
+
+                        Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(builder: (context) => SignIn()),
+                          (route) => false,
                         );
                     },
                     child: const Text('Logout')

@@ -1,13 +1,12 @@
-import 'package:etabang/connector/encryption.dart';
-import 'package:etabang/global/vars.dart';
 import 'package:etabang/pages/homepage.dart';
 import 'package:etabang/pages/sign_up.dart';
 import 'package:etabang/pages/welcome_page.dart';
 import 'package:flutter/material.dart';
+import 'package:postgres/postgres.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../connector/db_connection.dart';
 import '../connector/db_connector.dart';
-import '../models/user.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -128,8 +127,9 @@ class _SignInState extends State<SignIn> {
                       const TextStyle(fontSize: 20, fontFamily: 'Poppins'),
                     )),
                 onPressed: () async {
-                  if(userName.text.isNotEmpty && passwordController.text.isNotEmpty){        
+                  if(userName.text.isNotEmpty && passwordController.text.isNotEmpty){  
                     try {
+                      PostgreSQLConnection connection = await DbConnection().getConnection();
                       String query = """ 
                         SELECT "Id", "FirstName", "LastName", "Username", "Password", "UserType", "City", "State", "Street"
                           FROM public."Users"
@@ -137,7 +137,7 @@ class _SignInState extends State<SignIn> {
                           LIMIT 1;
                       """;
 
-                      final result = await dbConnector.query(query);
+                      final result = await connection.mappedResultsQuery(query);
                       
                       if(result.isEmpty){
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -170,15 +170,17 @@ class _SignInState extends State<SignIn> {
                           await prefs.setInt('loggedInUserType', userType);
 
                           if (isFirstTime) {
-                              Navigator.pushReplacement(
+                              Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => WelcomePage(name: firstname)),
+                                (route) => false,
                               );
                           } else {
-                            Navigator.pushReplacement(
+                            Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(builder: (context) => const Homepage()),
+                              (route) => false,
                             );
                           }
                         }else{
