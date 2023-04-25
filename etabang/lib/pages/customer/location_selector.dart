@@ -1,9 +1,10 @@
+import 'package:etabang/models/user_location.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LocationSelector extends StatefulWidget {
   @override
@@ -12,16 +13,21 @@ class LocationSelector extends StatefulWidget {
 
 class _LocationSelectorState extends State<LocationSelector> {
   late GoogleMapController _mapController;
+  bool _isMapCreated = false;
   late LatLng _selectedLocation = const LatLng(14.599512, 120.984222);
   final Set<Marker> _markers = {};
   late final TextEditingController _cityController = TextEditingController();
   late bool _isCityFound = false;
+  late bool _isStateFound = false;
   late final TextEditingController _streetController = TextEditingController();
-  late final TextEditingController _floorController = TextEditingController();
-  // final TextEditingController _searchController = TextEditingController();
+  late final TextEditingController _stateController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
+    if (!_isMapCreated) {
+      _mapController = controller;
+      _isMapCreated = true;
+    }
   }
 
   Future<void> _onLocationSelected(LatLng location) async {
@@ -35,16 +41,19 @@ class _LocationSelectorState extends State<LocationSelector> {
           _markers.clear();
           _markers.add(
             Marker(
-              markerId: MarkerId('Selected Location'),
+              markerId: const MarkerId('Selected Location'),
               position: _selectedLocation,
             ),
           );
-          _cityController.text = place.locality ?? '';
+          _cityController.text = place.locality ?? "";
           if(place.locality != null){
             _isCityFound = true;
           }
-          _streetController.text = place.street ?? '';
-          _floorController.text = '';
+          _streetController.text = place.street ?? "";
+          _stateController.text = place.subAdministrativeArea ?? "";
+          if(place.subAdministrativeArea != null){
+            _isStateFound = true;
+          }
         });
       } catch (e) {
          setState(() {
@@ -52,25 +61,54 @@ class _LocationSelectorState extends State<LocationSelector> {
           _markers.clear();
           _markers.add(
             Marker(
-              markerId: MarkerId('Selected Location'),
+              markerId: const MarkerId('Selected Location'),
               position: _selectedLocation,
             ),
           );
-          _cityController.text = '';
+          _cityController.text = "";
           _isCityFound = false;
-          _streetController.text = '';
-          _floorController.text = '';
+          _streetController.text = "";
+          _stateController.text = "";
         });
       }
   }
 
   Future<LatLng> _initializeLocation() async {
-     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      if(position == null){
-        return const LatLng(14.599512, 120.984222);
-      }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    double? lat = prefs.getDouble("currentLat");
+    double? lng = prefs.getDouble("currentLng");
 
-      return LatLng(position.longitude, position.longitude);
+    if(lat == null && lng == null){
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      // ignore: unnecessary_null_comparison
+      if(position == null){
+        lat = 14.599512;
+        lng = 120.984222;
+      }else{
+        lat = position.latitude;
+        lng = position.longitude;
+      }
+    }
+
+    LatLng userLocation = LatLng(lat!, lng!);
+
+    await _onLocationSelected(userLocation);
+    setState(() {
+      if(_isMapCreated){
+        _mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+          target: userLocation,
+          zoom: 14.0,
+        )));
+        
+        _markers.clear();
+        _markers.add(Marker(
+          markerId: MarkerId(userLocation.toString()),
+          position: userLocation,
+        ));
+      }
+    });
+
+    return userLocation;
   }
 
   @override
@@ -78,7 +116,8 @@ class _LocationSelectorState extends State<LocationSelector> {
     super.initState();
     _cityController.text = "";
     _isCityFound = false;
-     _initializeLocation().then((location) {
+
+    _initializeLocation().then((location) {
       // Set the state when the initialization is complete.
       setState(() {
         _selectedLocation = location;
@@ -113,49 +152,63 @@ class _LocationSelectorState extends State<LocationSelector> {
                 ]
               ),
             ),
-            // Container(
-            //   color: Colors.white,
-            //   child: TextField(
-            //     controller: _searchController,
-            //     decoration: InputDecoration(
-            //       hintText: "Search location",
-            //       prefixIcon: Icon(Icons.search),
-            //       border: OutlineInputBorder(
-            //         borderRadius: BorderRadius.circular(10.0),
-            //         borderSide: BorderSide.none,
-            //       ),
-            //     ),
-            //     onSubmitted: (value) async {
-            //       List<Location> locations = await locationFromAddress(value);
-            //       if (locations.length > 0) {
-            //         Location location = locations[0];
-            //         _selectedLocation = LatLng(location.latitude!, location.longitude!);
-            //         setState(() {
-            //           _mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-            //             target: _selectedLocation,
-            //             zoom: 14.0,
-            //           )));
-            //           _markers.clear();
-            //           _markers.add(Marker(
-            //             markerId: MarkerId(_selectedLocation.toString()),
-            //             position: _selectedLocation,
-            //           ));
-            //         });
-            //       }
-            //     },
-            //   ),
-            // ),
-            Expanded(
-              child: GoogleMap(
-                onMapCreated: _onMapCreated,
-                initialCameraPosition: const CameraPosition(
-                  target: LatLng(14.599512, 120.984222),
-                  zoom: 12.0,
+            Container(
+              color: Colors.white,
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: "Search location",
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
-                markers: _markers,
-                mapType: MapType.normal,
-                onTap: _onLocationSelected,
+                onSubmitted: (value) async {
+                  try {
+                    List<Location> locations = await locationFromAddress(value);
+                    if (locations.isNotEmpty) {
+                      Location location = locations[0];
+                      _selectedLocation = LatLng(location.latitude!, location.longitude!);
+                      setState(() {
+                        _mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+                          target: _selectedLocation,
+                          zoom: 14.0,
+                        )));
+                        _markers.clear();
+                        _markers.add(Marker(
+                          markerId: MarkerId(_selectedLocation.toString()),
+                          position: _selectedLocation,
+                        ));
+                      });
+                      await _onLocationSelected(_selectedLocation);
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('No location found on search.'),
+                        backgroundColor: Colors.grey,
+                      ),
+                    );
+                  }
+                },
               ),
+            ),
+            StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return Expanded(
+                  child: GoogleMap(
+                    onMapCreated: _onMapCreated,
+                    initialCameraPosition: const CameraPosition(
+                      target: LatLng(14.599512, 120.984222),
+                      zoom: 12.0,
+                    ),
+                    markers: _markers,
+                    mapType: MapType.normal,
+                    onTap: _onLocationSelected,
+                  ),
+                );
+              }
             ),
             Container(
               padding: EdgeInsets.all(16.0),
@@ -163,33 +216,39 @@ class _LocationSelectorState extends State<LocationSelector> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   TextField(
-                    controller: _cityController,
-                    enabled: !_isCityFound,
-                    decoration: const InputDecoration(
-                      labelText: 'City',
-                      border: OutlineInputBorder(),
-                    ),
-                    style: const TextStyle(fontSize: 15.0, fontFamily: 'Poppins')
-                  ),
-                  const SizedBox(height: 10.0),
-                  TextField(
                     controller: _streetController,
                     decoration: const InputDecoration(
-                      labelText: 'Street',
+                      labelText: 'Street *',
                       border: OutlineInputBorder(),
                     ),
                     style: const TextStyle(fontSize: 15.05, fontFamily: 'Poppins')
                   ),
+                  
                   const SizedBox(height: 10.0),
+
                   TextField(
-                    controller: _floorController,
+                    controller: _cityController,
+                    // enabled: !_isCityFound,
                     decoration: const InputDecoration(
-                      labelText: 'Floor',
+                      labelText: 'City *',
                       border: OutlineInputBorder(),
                     ),
                     style: const TextStyle(fontSize: 15.0, fontFamily: 'Poppins')
                   ),
+                 
+                  const SizedBox(height: 10.0),
+                  TextField(
+                    controller: _stateController,
+                    // enabled: !_isStateFound,
+                    decoration: const InputDecoration(
+                      labelText: 'State *',
+                      border: OutlineInputBorder(),
+                    ),
+                    style: const TextStyle(fontSize: 15.0, fontFamily: 'Poppins')
+                  ),
+
                   const SizedBox(height: 10.0,),
+                  
                   TextButton(
                       style: ButtonStyle(
                           backgroundColor:
@@ -209,8 +268,25 @@ class _LocationSelectorState extends State<LocationSelector> {
                                 fontSize: 15, fontFamily: 'Poppins'),
                           )),
                       onPressed: () async {
-                        Navigator.pop(context);
+                        if(_streetController.text.isEmpty || _cityController.text.isEmpty || _stateController.text.isEmpty){
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Enter required fields.'),
+                              backgroundColor: Colors.grey,
+                            ),
+                          );  
+                        }
+                        
+                        UserLocation userLocation = UserLocation(
+                          lat: _selectedLocation.latitude, 
+                          lng: _selectedLocation.longitude, 
+                          street: _streetController.text, 
+                          city: _cityController.text, 
+                          state: _stateController.text
+                        );
+                        Navigator.pop(context, userLocation);
                       },
+
                       child: const Text("Set Location")),
                 ],
               ),

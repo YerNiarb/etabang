@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:etabang/connector/db_connector.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -13,9 +12,6 @@ import 'package:intl/intl.dart';
 import 'package:postgres/postgres.dart';
 
 import '../connector/db_connection.dart';
-import '../connector/encryption.dart';
-import '../global/vars.dart';
-
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
 
@@ -24,7 +20,6 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
-  final _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
   UserType userType = UserType.customer;
   TextEditingController firstName = TextEditingController();
   TextEditingController lastName = TextEditingController();

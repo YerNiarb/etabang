@@ -1,10 +1,18 @@
+import 'package:etabang/enums/booking_status.dart';
 import 'package:etabang/models/booking.dart';
 import 'package:etabang/models/payment_method.dart';
 import 'package:etabang/pages/customer/booking_confirmed.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:postgres/postgres.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../connector/db_connection.dart';
+import '../../enums/payment_options.dart';
 import '../../models/service_worker.dart';
+import '../../models/user_location.dart';
 import '../common/integer_input.dart';
 import 'location_selector.dart';
 
@@ -13,7 +21,8 @@ class BookService extends StatefulWidget {
   final String serviceName;
   final String streetAddress;
   final double hourlyPrice;
-  const BookService({super.key, required this.serviceName, required this.streetAddress, required this.hourlyPrice, required this.serviceWorker});
+  final int serviceId;
+  const BookService({super.key, required this.serviceName, required this.streetAddress, required this.hourlyPrice, required this.serviceWorker, required this.serviceId});
 
   @override
   State<BookService> createState() => _BookServiceState();
@@ -25,18 +34,18 @@ class _BookServiceState extends State<BookService> {
   String stepTwoTitle = "Payment Details";
   String stepThreeTitle = "Book Now";
   String stepTitle = "Payment Details";  
-  String nextButtonText = "Review Payment and Location"; 
-  DateTime serviceDate = DateTime.now();
-  TimeOfDay serviceTime = TimeOfDay.now();
+  String nextButtonText = "Review Payment and Location";
+  int? userId;
+  double? userLat;
+  double? userLng;
+  bool isLoading = false;
 
   //Booking Details
   late GoogleMapController _mapController;
+  bool _isMapCreated = false;
   final Set<Marker> _markers = {};
 
-  Booking? _bookingDetails = null;
-  double subTotal = 0.00;
-  double travelFee = 25.00;
-  int quantity = 1;
+  late Booking _bookingDetails;
   TextEditingController qtyOfServiceInput = TextEditingController();
 
   List<PaymentMethod> paymentMethods = [
@@ -46,14 +55,108 @@ class _BookServiceState extends State<BookService> {
           description: "Cash on delivery")
     ];
 
-   void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
+  void _onMapCreated(GoogleMapController controller) {
+    if (!_isMapCreated) {
+      _mapController = controller;
+      _isMapCreated = true;
+    }
+  }
+
+  void _initBookingDetails(){
+    setState(() {
+      _bookingDetails = Booking(
+        serviceId: widget.serviceId,
+        subTotal: widget.hourlyPrice,
+        travelFee: 25.00,
+        numberOfHours:  1, 
+        bookingDate:  DateTime.now(),
+        bookingTime: TimeOfDay.now()
+      );
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    subTotal = widget.hourlyPrice;
+    _loadPreferences();
+    _initBookingDetails();
+    _initializeLocation();
+  }
+
+  Future<void> _loadPreferences() async {
+    await Future.delayed(Duration.zero);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    
+    setState(() {
+      userId = prefs.getInt('loggedInUserId');
+      userLat = prefs.getDouble('currentLat');
+      userLng = prefs.getDouble('currentLng');
+    });
+  }
+
+  Future<LatLng> _initializeLocation() async {
+    double? lat = userLat;
+    double? lng = userLng;
+
+    if(lat == null && lng == null){
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      // ignore: unnecessary_null_comparison
+      if(position == null){
+        lat = 14.599512;
+        lng = 120.984222;
+      }else{
+        lat = position.latitude;
+        lng = position.longitude;
+      }
+    }
+
+    LatLng userLocation = LatLng(lat!, lng!);
+
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+      Placemark place = placemarks[0];
+      setState(() {
+        // _selectedLocation = location;
+        _markers.clear();
+        _markers.add(
+          Marker(
+            markerId: const MarkerId('Selected Location'),
+            position: userLocation,
+          ),
+        );
+        _bookingDetails.city = place.locality ?? "";
+        _bookingDetails.street = place.street ?? "";
+        _bookingDetails.state = place.subAdministrativeArea ?? "";
+        _bookingDetails.latLong = userLocation;
+
+      });
+    } catch (e) {
+       setState(() {
+        _bookingDetails.latLong = null;
+        _markers.clear();
+        _bookingDetails.city = "";
+        _bookingDetails.street = "";
+        _bookingDetails.state = "";
+      });
+    }
+
+    if(_isMapCreated){
+      setState(() {
+        _mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+          target: userLocation,
+          zoom: 14.0,
+        )));
+        
+        _markers.clear();
+        _markers.add(Marker(
+          markerId: MarkerId(userLocation.toString()),
+          position: userLocation,
+        ));
+      
+      });
+    }
+    
+    return userLocation;
   }
 
   @override
@@ -66,7 +169,7 @@ class _BookServiceState extends State<BookService> {
             Row(
               children: [
                 IconButton(
-                  icon: Icon(Icons.close, color: Colors.cyan,),
+                  icon: const Icon(Icons.close, color: Colors.cyan,),
                   onPressed: () {
                     Navigator.pop(context);
                   },
@@ -132,14 +235,63 @@ class _BookServiceState extends State<BookService> {
                                     fontSize: 15, fontFamily: 'Poppins'),
                               )),
                           onPressed: () async {
-                            setState(() {
-                              if(_currentStep == 2){
+                            if (_currentStep == 2) {
+                              try {
+                                PostgreSQLConnection connection = await DbConnection().getConnection();
+                                String query = """
+                                  INSERT INTO public."Bookings"(
+                                    "StaffId", "CustomerId", "ServiceId", "Quantity", "SubTotal", "TravelFee", 
+                                    "ServiceLocation", "Street", "City", "State", "Status", "PaymentOption", "Date", "Time")
+                                    VALUES (
+                                      ${widget.serviceWorker.id}, 
+                                      $userId, 
+                                      ${widget.serviceId}, 
+                                      ${_bookingDetails.numberOfHours}, 
+                                      ${double.parse(_bookingDetails.subTotal.toStringAsFixed(2))}, 
+                                      ${double.parse(_bookingDetails.travelFee.toStringAsFixed(2))}, 
+                                      ST_Point(${_bookingDetails.latLong!.latitude}, ${_bookingDetails.latLong!.longitude}), 
+                                      '${_bookingDetails.street}', 
+                                      '${_bookingDetails.city}',
+                                      '${_bookingDetails.state}',
+                                      ${BookingStatus.booked.index},
+                                      ${PaymentOption.cod.index},
+                                      '${DateFormat('yyyy-MM-dd').format(_bookingDetails.bookingDate)}',
+                                      '${_bookingDetails.bookingTime.hour}:${_bookingDetails.bookingTime.minute}:00'
+                                    );
+                                """;
+
+                                final insertResult = await connection.mappedResultsQuery(query);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Success.'),
+                                    backgroundColor: Colors.cyan,
+                                  ),
+                                );
+
+                                // ignore: use_build_context_synchronously
                                 Navigator.pushReplacement(
                                   context,
-                                  MaterialPageRoute(builder: (context) => BookingConfirmed(serviceWorkerName: "${widget.serviceWorker.firstName} ${widget.serviceWorker.lastName}",)),
+                                  MaterialPageRoute(
+                                      builder: (context) => BookingConfirmed(
+                                            serviceWorkerName:
+                                                "${widget.serviceWorker.firstName} ${widget.serviceWorker.lastName}",
+                                          )),
                                 );
+                              } catch (e) {
+                                setState(() {
+                                  isLoading = false;
+                                } );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Unable place booking.'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                return;
                               }
+                            }
 
+                            setState(() {
                               if (_currentStep < 2) {
                                 _currentStep += 1;
 
@@ -191,8 +343,8 @@ class _BookServiceState extends State<BookService> {
                                       maxValue: 99,
                                       onChanged: (value) {
                                         setState(() {
-                                          quantity = value;
-                                          subTotal = (value * widget.hourlyPrice);
+                                          _bookingDetails.numberOfHours = value;
+                                          _bookingDetails.subTotal = (value * widget.hourlyPrice);
                                         });
                                       },
                                     ),
@@ -240,7 +392,7 @@ class _BookServiceState extends State<BookService> {
                                 );
                                 if (selectedDate != null) {
                                   setState(() {
-                                    serviceDate = selectedDate;
+                                    _bookingDetails.bookingDate = selectedDate;
                                   });
                                 }
                               },
@@ -278,7 +430,7 @@ class _BookServiceState extends State<BookService> {
                                               ),
                                             ),
                                             Text(
-                                              DateFormat('EEEE, dd MMM yyyy').format(serviceDate),
+                                              DateFormat('EEEE, dd MMM yyyy').format(_bookingDetails.bookingDate),
                                               overflow: TextOverflow.ellipsis,
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
@@ -316,7 +468,7 @@ class _BookServiceState extends State<BookService> {
                                 );
                                 if (seletedTime != null) {
                                   setState(() {
-                                    serviceTime = seletedTime;
+                                    _bookingDetails.bookingTime = seletedTime;
                                   });
                                 }
                               },
@@ -354,7 +506,7 @@ class _BookServiceState extends State<BookService> {
                                               ),
                                             ),
                                             Text(
-                                              serviceTime.format(context),
+                                              _bookingDetails.bookingTime.format(context),
                                               overflow: TextOverflow.ellipsis,
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
@@ -397,7 +549,7 @@ class _BookServiceState extends State<BookService> {
                                   ),
                                 ),
                                 Text(
-                                  "₱ $subTotal",
+                                  "₱ ${_bookingDetails.subTotal}",
                                   style: TextStyle(
                                     fontSize: 18, 
                                     // fontFamily: 'Poppins',
@@ -423,7 +575,7 @@ class _BookServiceState extends State<BookService> {
                                   ),
                                 ),
                                 Text(
-                                  "₱ $travelFee",
+                                  "₱ ${_bookingDetails.travelFee}",
                                   style: TextStyle(
                                     fontSize: 18, 
                                     // fontFamily: 'Poppins',
@@ -465,11 +617,22 @@ class _BookServiceState extends State<BookService> {
                               margin: const EdgeInsets.only(bottom: 20),
                               child: InkWell(
                                 onTap: () async {
-                                  Navigator.push(
+                                  final result = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => LocationSelector()),
+                                      builder: (context) => LocationSelector()
+                                    ),
                                   );
+
+                                  if(result != null){
+                                    UserLocation selectedLocation = result as UserLocation;
+                                    setState(() {
+                                      _bookingDetails.latLong = LatLng(selectedLocation.lat, selectedLocation.lng);
+                                      _bookingDetails.street = selectedLocation.street;
+                                      _bookingDetails.city = selectedLocation.city;
+                                      _bookingDetails.state = selectedLocation.state;
+                                    });
+                                  }
                                 },
                                 child: Card(
                                   child: Padding(
@@ -507,7 +670,8 @@ class _BookServiceState extends State<BookService> {
                                                     ),
                                                   ),
                                                   Text(
-                                                    _bookingDetails == null || _bookingDetails?.city == "" ? "Location not selected." : "${_bookingDetails?.floor} ${_bookingDetails?.street} ${_bookingDetails?.city}",
+                                                    _bookingDetails == null || 
+                                                      _bookingDetails.latLong == null ? "Location not selected." : "${_bookingDetails.street}, ${_bookingDetails.city}, ${_bookingDetails.state}",
                                                     overflow: TextOverflow.ellipsis,
                                                     style: const TextStyle(
                                                       fontWeight: FontWeight.bold,
@@ -519,7 +683,7 @@ class _BookServiceState extends State<BookService> {
                                               ),
                                             ),
                                             Container(
-                                              margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                              margin: EdgeInsets.only(left: 5),
                                               child: const SizedBox(
                                                 width: 60,
                                                 child: Icon(
@@ -531,21 +695,25 @@ class _BookServiceState extends State<BookService> {
                                             )
                                           ],
                                         ),
-                                        Container(
-                                          margin: const EdgeInsets.only(top: 20),
-                                          child: SizedBox(
-                                            height: 150,
-                                            child: GoogleMap(
-                                              // onMapCreated: _onMapCreated,
-                                              initialCameraPosition: const CameraPosition(
-                                                target: LatLng(14.599512, 120.984222),
-                                                zoom: 12.0,
+                                        StatefulBuilder(
+                                          builder: (BuildContext context, StateSetter setState) {
+                                            return Container(
+                                              margin: const EdgeInsets.only(top: 20),
+                                              child: SizedBox(
+                                                height: 150,
+                                                child: GoogleMap(
+                                                  onMapCreated: _onMapCreated,
+                                                  initialCameraPosition: CameraPosition(
+                                                    target: _bookingDetails.latLong == null ? const LatLng(14.599512, 120.984222) : _bookingDetails.latLong!,
+                                                    zoom: 12.0,
+                                                  ),
+                                                  markers: _markers,
+                                                  mapType: MapType.normal,
+                                                ),
                                               ),
-                                              markers: _markers,
-                                              mapType: MapType.normal,
-                                            ),
-                                          ),
-                                         ),
+                                            );
+                                          }
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -556,13 +724,13 @@ class _BookServiceState extends State<BookService> {
                               margin: const EdgeInsets.only(bottom: 20),
                               child: Card(
                                 child: Padding(
-                                  padding: EdgeInsets.fromLTRB(5, 25, 5, 25),
+                                  padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Container(
                                         width: double.infinity,
-                                        margin: EdgeInsets.only(left: 20),
+                                        margin: const EdgeInsets.only(left: 20),
                                         child: const SizedBox(
                                           width: 200,
                                           child: Text(
@@ -577,7 +745,7 @@ class _BookServiceState extends State<BookService> {
                                         ),
                                       ),
                                       Container(
-                                        margin: EdgeInsets.only(top: 20),
+                                        margin: const EdgeInsets.only(top: 20),
                                         child: Row(
                                           children: [
                                              SizedBox(
@@ -674,7 +842,7 @@ class _BookServiceState extends State<BookService> {
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
                                             Text(
-                                              "${quantity}x ${widget.serviceName}",
+                                              "${_bookingDetails.numberOfHours}x ${widget.serviceName}",
                                               maxLines: null,
                                               style: const TextStyle(
                                                 fontSize: 15,
@@ -716,7 +884,7 @@ class _BookServiceState extends State<BookService> {
                                               ),
                                             ),
                                             Text(
-                                              "₱ $subTotal",
+                                              "₱ ${_bookingDetails.subTotal}",
                                               style: const TextStyle(
                                                 fontSize: 15,
                                                 color: Colors.grey,
@@ -743,7 +911,7 @@ class _BookServiceState extends State<BookService> {
                                               ),
                                             ),
                                             Text(
-                                              "₱ $travelFee",
+                                              "₱ ${_bookingDetails.travelFee}",
                                               style: const TextStyle(
                                                 fontSize: 15,
                                                 color: Colors.grey,
@@ -771,7 +939,7 @@ class _BookServiceState extends State<BookService> {
                                               ),
                                             ),
                                             Text(
-                                              "₱ ${subTotal + travelFee}",
+                                              "₱ ${_bookingDetails.subTotal + _bookingDetails.travelFee}",
                                               style: const TextStyle(
                                                 fontSize: 15,
                                                 color: Colors.grey,

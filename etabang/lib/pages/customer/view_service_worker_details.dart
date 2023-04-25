@@ -1,12 +1,16 @@
 import 'package:etabang/models/service_worker.dart';
 import 'package:etabang/pages/customer/book_service.dart';
 import 'package:flutter/material.dart';
+import 'package:postgres/postgres.dart';
+import '../../connector/db_connection.dart';
 import '../../global/vars.dart';
+import '../../models/service.dart';
 import '../common/star_rating.dart';
 
 class ViewServiceWorkerDetails extends StatefulWidget {
   final ServiceWorker serviceWorker;
-  const ViewServiceWorkerDetails({super.key, required this.serviceWorker});
+  final int serviceIdToBook;
+  const ViewServiceWorkerDetails({super.key, required this.serviceWorker, required this.serviceIdToBook});
 
   @override
   _ServiceWorkerDetails createState() => _ServiceWorkerDetails();
@@ -14,7 +18,69 @@ class ViewServiceWorkerDetails extends StatefulWidget {
 
 class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
   bool _imageLoaded = true;
-  double kilometersAway = 100;
+  List<int> staffServiceIds = [];
+  List<Service> services = [];
+  late Service serviceToBook;
+
+  Future<void> _getStaffServices() async {
+    PostgreSQLConnection connection = await DbConnection().getConnection();
+
+    String query = """ 
+        SELECT "ServiceId"
+          FROM public."StaffServices"
+          WHERE "StaffId"='${widget.serviceWorker.id}';
+      """;
+      
+    final results = await connection.mappedResultsQuery(query);
+    if(results.isNotEmpty){
+      for (var result in results) {
+        var fetched = result;
+        setState(() {
+          staffServiceIds.add(
+          fetched["StaffServices"]?["ServiceId"]
+          );
+        });
+      }
+    }
+  }
+
+  Future<void> _getServices() async {
+    PostgreSQLConnection connection = await DbConnection().getConnection();
+
+    String query = """
+        SELECT "Id", "Name", "HourlyRate"
+          FROM "Services"
+          WHERE "IsActive" = true;
+    """;
+    
+    final results = await connection.mappedResultsQuery(query);
+    List<Service> fetchedServices = [];
+
+    if(results.isNotEmpty){
+      for (var result in results) {
+        var fetched = result.values.first;
+        fetchedServices.add(
+          Service(
+            id: fetched["Id"], 
+            name: fetched["Name"], 
+            hourlyPrice: fetched["HourlyRate"]
+          )
+        );
+      }
+    }
+
+    setState(() {
+      services = fetchedServices;
+      serviceToBook = fetchedServices.firstWhere((service) => service.id == widget.serviceIdToBook);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getStaffServices();
+    _getServices();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +142,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                           onPressed: () {
                             Navigator.pop(context);
                           },
-                          child: Icon(Icons.chevron_left),
+                          child: const Icon(Icons.chevron_left),
                         ),
                       ),
                       Container(
@@ -89,7 +155,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                           onPressed: () {
                             // Handle button 1 tap
                           },
-                          child: Icon(Icons.bookmark_outline),
+                          child: const Icon(Icons.bookmark_outline),
                         ),
                       ),
                     ],
@@ -127,8 +193,8 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                   ]),
                   Container(
                     margin: const EdgeInsets.fromLTRB(0, 0, 0, 10.0),
-                    child: Text("Housekeeping",
-                        style: const TextStyle(
+                    child: const Text("Housekeeping",
+                        style:  TextStyle(
                           fontSize: 15,
                           fontFamily: 'Poppins',
                           color: Colors.grey,
@@ -148,7 +214,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                           Icons.location_on_outlined,
                           color: Colors.grey,
                         ),
-                        Text("${kilometersAway} km away",
+                        Text("${widget.serviceWorker.kmAway} km away",
                             style: const TextStyle(
                               fontSize: 15,
                               fontFamily: 'Poppins',
@@ -171,7 +237,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
       
                    Container(
                     margin: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                    child: Text("${widget.serviceWorker.street},",
+                    child: Text(widget.serviceWorker.street.isNotEmpty ? "${widget.serviceWorker.street}," : "-",
                         style: const TextStyle(
                           fontSize: 15,
                           fontFamily: 'Poppins',
@@ -183,12 +249,14 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                    Container(
                     margin: const EdgeInsets.fromLTRB(0, 10, 0, 0),
                     child: Text(
-                        "${widget.serviceWorker.city}, ${widget.serviceWorker.state}",
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontFamily: 'Poppins',
-                          color: Colors.grey,
-                        )),
+                      widget.serviceWorker.city.isNotEmpty && widget.serviceWorker.state.isNotEmpty ? 
+                        "${widget.serviceWorker.city}, ${widget.serviceWorker.state}" :
+                        "-",
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontFamily: 'Poppins',
+                        color: Colors.grey,
+                      )),
                     
                   ),
       
@@ -206,66 +274,25 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
       
                   Wrap(
                     children: [
-                      Container(
-                        margin: const EdgeInsets.all(5),
-                        padding: const EdgeInsets.all(13.0),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(15.0),
-                          border: Border.all(
-                            color: Colors.grey,
+                      for(Service service in services)
+                        Container(
+                          margin: const EdgeInsets.all(5),
+                          padding: const EdgeInsets.all(13.0),
+                          decoration: BoxDecoration(
+                            color: staffServiceIds.contains(service.id) ? Colors.cyan : Colors.transparent,
+                            borderRadius: BorderRadius.circular(15.0),
+                            border: Border.all(
+                              color: staffServiceIds.contains(service.id) ? Colors.white : Colors.grey,
+                            ),
+                          ),
+                          child: Text(
+                            service.name,
+                            style: TextStyle(
+                              fontSize: 15, 
+                              color: staffServiceIds.contains(service.id) ? Colors.white : Colors.grey
+                            ),
                           ),
                         ),
-                        child: const Text(
-                          'Caretaker Services',
-                          style: TextStyle(fontSize: 15, color: Colors.grey),
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.all(5),
-                        padding: const EdgeInsets.all(13.0),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(15.0),
-                          border: Border.all(
-                            color: Colors.grey,
-                          ),
-                        ),
-                        child: const Text(
-                          'Laundry Services',
-                          style: TextStyle(fontSize: 15, color: Colors.grey),
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.all(5),
-                        padding: const EdgeInsets.all(13.0),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(15.0),
-                          border: Border.all(
-                            color: Colors.grey,
-                          ),
-                        ),
-                        child: const Text(
-                          'Plumbing Services',
-                          style: TextStyle(fontSize: 15, color: Colors.grey),
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.all(5),
-                        padding: const EdgeInsets.all(13.0),
-                        decoration: BoxDecoration(
-                          color: Colors.cyan,
-                          borderRadius: BorderRadius.circular(15.0),
-                          border: Border.all(
-                            color: Colors.transparent,
-                          ),
-                        ),
-                        child: const Text(
-                          'Dishwashing Services',
-                          style: TextStyle(fontSize: 15, color: Colors.white),
-                        ),
-                      ),
                     ],
                   ),
       
@@ -282,19 +309,8 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
       
                    Container(
                     margin: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                    child: Text("${widget.serviceWorker.street},",
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontFamily: 'Poppins',
-                          color: Colors.grey,
-                        )),
-                    
-                  ),
-      
-                   Container(
-                    margin: const EdgeInsets.fromLTRB(0, 10, 0, 0),
                     child: Text(
-                        "Monday - Friday, 8:30am - 7:30pm",
+                        "${widget.serviceWorker.workingDays} | ${widget.serviceWorker.workingHours}",
                         style: const TextStyle(
                           fontSize: 15,
                           fontFamily: 'Poppins',
@@ -349,10 +365,12 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => BookService(
-                              serviceName: "Dishwashing Service", 
-                              streetAddress: widget.serviceWorker.street, 
-                              hourlyPrice: widget.serviceWorker.hourlyPrice,
-                              serviceWorker: widget.serviceWorker,)
+                                serviceName: serviceToBook.name, 
+                                streetAddress: widget.serviceWorker.street, 
+                                hourlyPrice: widget.serviceWorker.hourlyPrice,
+                                serviceWorker: widget.serviceWorker,
+                                serviceId: widget.serviceIdToBook,
+                              )
                             ),
                           );
                         },

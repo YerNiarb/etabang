@@ -3,14 +3,15 @@ import 'package:etabang/pages/homepage.dart';
 import 'package:etabang/pages/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'connector/db_connection.dart';
 
 void main() async { 
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
+
   DbConnection dbConnection = DbConnection();
   await dbConnection.getConnection();
+  
   bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
   bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
@@ -31,8 +32,6 @@ class Initialize extends StatelessWidget {
         home: GetStarted()
       );
     }
-    
-    // TODO: Add authentication check
 
     return MaterialApp(
       home:  isLoggedIn ? const Homepage() : const SignIn(),

@@ -6,6 +6,7 @@ import '../../connector/db_connection.dart';
 import '../../global/vars.dart';
 import '../../models/service_worker.dart';
 import '../homepage.dart';
+import 'dart:math' as Math;
 
 class FindWorkers extends StatefulWidget {
   final int serviceId;
@@ -18,6 +19,9 @@ class FindWorkers extends StatefulWidget {
 class _FindWorkersState extends State<FindWorkers> {
   String userName = "";
   String userInitials = "";
+  int? userId;
+  double? userLat;
+  double? userLng;
   TextEditingController textFilter = TextEditingController();
       
   List<ServiceWorker> availableWorkers = [];
@@ -27,6 +31,9 @@ class _FindWorkersState extends State<FindWorkers> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String loggedInUserfirstName = prefs.getString('loggedInUserfirstName') ?? "";
     String loggedInUserlastName = prefs.getString('loggedInUserlastName') ?? "";
+    userId = prefs.getInt('loggedInUserId');
+    userLat = prefs.getDouble('currentLat');
+    userLng = prefs.getDouble('currentLng');
 
     setState(() {
       userName = loggedInUserfirstName;
@@ -34,11 +41,30 @@ class _FindWorkersState extends State<FindWorkers> {
     });
   }
 
+  double calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+    const int radiusOfEarthInKm = 6371;
+    double lat1Radians = Math.pi / 180 * lat1;
+    double lon1Radians = Math.pi / 180 * lon1;
+    double lat2Radians = Math.pi / 180 * lat2;
+    double lon2Radians = Math.pi / 180 * lon2;
+    double dLat = lat2Radians - lat1Radians;
+    double dLon = lon2Radians - lon1Radians;
+    double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1Radians) *
+            Math.cos(lat2Radians) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
+    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return radiusOfEarthInKm * c;
+  }
+
   Future<void> _getAvailableWorkers() async {
     PostgreSQLConnection connection = await DbConnection().getConnection();
 
     String query = """
-        SELECT u."FirstName", u."LastName", s."Name" as "ServiceName", ss."ServiceId" as "ServiceId", ss."StaffId" as "StaffId", s."HourlyRate" as "HourlyRate"
+        SELECT u."FirstName", u."LastName", ST_X(u."CurrentLocation") AS "Lat", ST_Y(u."CurrentLocation") AS "Lng", u."Street", u."City", u."State", 
+          u."WorkingDays", u."WorkingHours",
+          s."Name" as "ServiceName", ss."ServiceId" as "ServiceId", ss."StaffId" as "StaffId", s."HourlyRate" as "HourlyRate"
           FROM "StaffServices" ss 
           LEFT JOIN "Users" u ON ss."StaffId" = u."Id"  
           LEFT JOIN "Services" s ON ss."ServiceId" = s."Id"
@@ -51,16 +77,26 @@ class _FindWorkersState extends State<FindWorkers> {
     if(results.isNotEmpty){
       for (var result in results) {
         var fetched = result;
+        double kmAway = 1;
+
+        if(fetched[""]?["Lat"] != null && fetched[""]?["Lng"] != null && userLat != null && userLng != null){
+          kmAway = calculateHaversineDistance(fetched[""]?["Lat"], fetched[""]?["Lng"], userLat, userLng);
+          kmAway = double.parse(kmAway.toStringAsFixed(2));
+        }
+
         fetchedWorkers.add(
           ServiceWorker(
             id: fetched["StaffServices"]?["StaffId"], 
             firstName: fetched["Users"]?["FirstName"], 
             lastName: fetched["Users"]?["LastName"], 
-            street: "", 
-            city: "", 
-            state: "", 
+            street: fetched["Users"]?["Street"] ?? "", 
+            city: fetched["Users"]?["City"] ?? "", 
+            state: fetched["Users"]?["State"] ?? "", 
             userName: "",
-            hourlyPrice: fetched["Services"]?["HourlyRate"])
+            hourlyPrice: fetched["Services"]?["HourlyRate"],
+            kmAway: kmAway,
+            workingDays: fetched["Users"]?["WorkingDays"] ?? "",
+            workingHours: fetched["Users"]?["WorkingHours"] ?? "")
         );
       }
     }
@@ -163,17 +199,21 @@ class _FindWorkersState extends State<FindWorkers> {
                   : GridView.count(
                 crossAxisCount: 2,
                 childAspectRatio: 0.85,
-                padding: EdgeInsets.all(5.0),
+                padding: const EdgeInsets.all(5.0),
                 children: List.generate(availableWorkers.length, (index) {
                   return  InkWell(
                      onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ViewServiceWorkerDetails(serviceWorker: availableWorkers[index])),
+                        MaterialPageRoute(builder: (context) => ViewServiceWorkerDetails(
+                            serviceWorker: availableWorkers[index],
+                            serviceIdToBook: widget.serviceId,
+                          )
+                        ),
                       );
                     },
                     child: Container(
-                      margin: EdgeInsets.all(8.0),
+                      margin: const EdgeInsets.all(8.0),
                       child: Card(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0),
@@ -186,7 +226,7 @@ class _FindWorkersState extends State<FindWorkers> {
                                 width: 160,
                                 height: 120,
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
                                   image: DecorationImage(
                                     image: AssetImage(availableWorkers[index].profileImageUrl ?? defaulProfileImageUrl),
                                     fit: BoxFit.cover,
@@ -208,7 +248,7 @@ class _FindWorkersState extends State<FindWorkers> {
                               Container(
                                 margin: const EdgeInsets.fromLTRB(8.0, 0, 0, 1),
                                 child: Text(
-                                  '1000 km away',
+                                  '${availableWorkers[index].kmAway} km away',
                                   textAlign: TextAlign.left,
                                   maxLines: null,
                                   style: const TextStyle(

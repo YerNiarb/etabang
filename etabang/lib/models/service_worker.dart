@@ -4,6 +4,9 @@ class ServiceWorker extends User {
   double hourlyPrice;
   double currentLocationLat;
   double currentLocationLong;
+  double kmAway;
+  String workingDays;
+  String workingHours;
 
   ServiceWorker({
     required super.id,
@@ -15,6 +18,9 @@ class ServiceWorker extends User {
     required super.userName,
     this.currentLocationLat = 12.879721,
     this.currentLocationLong = 121.77401699999996,
-    this.hourlyPrice = 0.00
+    this.hourlyPrice = 0.00,
+    this.kmAway = 1,
+    this.workingDays = "Mon - Fri",
+    this.workingHours = "9:00AM to 3:00PM",
   });
 }
