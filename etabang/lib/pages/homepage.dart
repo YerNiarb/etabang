@@ -1,5 +1,7 @@
 import 'package:etabang/enums/user_type.dart';
 import 'package:etabang/pages/customer/find_services.dart';
+import 'package:etabang/pages/staff/order_history.dart';
+import 'package:etabang/pages/staff/staff_dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -19,35 +21,78 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   int _selectedIndex = 0;
+  List<BottomNavigationBarItem> _items = [];
+  List<Widget> _screens = [];
 
-  static const List<Widget> _screens = <Widget>[
-    FindServices(),
-    Messaging(),
-    WorkerTracker(),
-    UserProfile(),
-  ];
+  Future<int?> _loadPreferences() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('loggedInUserType');
+  }
 
-  // Future<void> _loadNavbarItems() async {
-  //   Future.delayed(Duration.zero);
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   int? userType = await prefs.getInt('loggedInUserType');
+  _loadNavbarItems(int? userType){
+    if(userType == UserType.customer.index){
+      setState(() {
+        _items = const [
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.home,
+            ),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on_outlined),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: '',
+          ),
+        ];
 
-  //   if(userType == UserType.customer.index){
-  //     setState(() {
-  //       _screens = [
-  //         FindServices(),
-  //         Text('Messages'),
-  //         WorkerTracker(),
-  //         UserProfile(),
-  //       ];
-  //     });
-  //   }else{
-  //     _screens = [
-  //       Text('Messages'),
-  //       UserProfile(),
-  //     ];
-  //   }
-  // }
+        _screens = const [
+          FindServices(),
+          Messaging(),
+          WorkerTracker(),
+          UserProfile(),
+        ];
+      });
+    }else{
+      setState(() {
+        _items = const [
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.home,
+            ),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.wallet_outlined),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: '',
+          ),
+        ];
+
+        _screens = const [
+          StaffDashboard(),
+          Messaging(),
+          OrderHistory(),
+          UserProfile(),
+        ];
+      });
+
+    }
+  }
 
   Future<void> _updateUserLocation() async {
     PostgreSQLConnection connection = await DbConnection().getConnection();
@@ -92,10 +137,12 @@ class _HomepageState extends State<Homepage> {
     }
   }
 
-
   @override
   void initState() {
     super.initState();
+    _loadPreferences().then((value) => {
+      _loadNavbarItems(value)
+    });
     _updateUserLocation();
   }
 
@@ -109,9 +156,9 @@ class _HomepageState extends State<Homepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: _screens.elementAt(_selectedIndex),
+        child: _screens.isNotEmpty ? _screens.elementAt(_selectedIndex) : const Center(child: CircularProgressIndicator()),
       ),
-      bottomNavigationBar: SizedBox(
+      bottomNavigationBar:_items.isEmpty ? null : SizedBox(
         height: 80,
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
@@ -120,26 +167,7 @@ class _HomepageState extends State<Homepage> {
           selectedItemColor: Colors.cyan,
           unselectedItemColor: Colors.grey,
           onTap: _onItemTapped,
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(
-                Icons.home,
-              ),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.location_on_outlined),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              label: '',
-            ),
-          ],
+          items: _items,
         ),
       ),
     );

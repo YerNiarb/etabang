@@ -169,7 +169,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                     List<Location> locations = await locationFromAddress(value);
                     if (locations.isNotEmpty) {
                       Location location = locations[0];
-                      _selectedLocation = LatLng(location.latitude!, location.longitude!);
+                      _selectedLocation = LatLng(location.latitude, location.longitude);
                       setState(() {
                         _mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
                           target: _selectedLocation,
