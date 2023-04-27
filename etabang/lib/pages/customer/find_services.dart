@@ -149,8 +149,14 @@ class _FindServicesState extends State<FindServices> {
             Expanded(
               child: 
                   services.isEmpty 
-                  ? const Center(
-                    child: Text("No services found.", style: TextStyle(color: Colors.grey, fontFamily: 'Poppins', fontSize: 18),),
+                  ? Center(
+                    child: Text(
+                      textFilter.text.isEmpty ? "No services found." : "No search results for \"${textFilter.text}\"", 
+                      style: const TextStyle(
+                        color: Colors.grey, 
+                        fontFamily: 'Poppins', 
+                        fontSize: 18),
+                      ),
                   )
                   : ListView.builder(
                   itemCount: services.length,

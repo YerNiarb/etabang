@@ -193,7 +193,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                   ]),
                   Container(
                     margin: const EdgeInsets.fromLTRB(0, 0, 0, 10.0),
-                    child: const Text("Housekeeping",
+                    child: const Text("Staff",
                         style:  TextStyle(
                           fontSize: 15,
                           fontFamily: 'Poppins',

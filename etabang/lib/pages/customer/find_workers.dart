@@ -32,11 +32,11 @@ class _FindWorkersState extends State<FindWorkers> {
     String loggedInUserfirstName = prefs.getString('loggedInUserfirstName') ?? "";
     String loggedInUserlastName = prefs.getString('loggedInUserlastName') ?? "";
     userId = prefs.getInt('loggedInUserId');
-    userLat = prefs.getDouble('currentLat');
-    userLng = prefs.getDouble('currentLng');
 
     setState(() {
       userName = loggedInUserfirstName;
+      userLat = prefs.getDouble('currentLat');
+      userLng = prefs.getDouble('currentLng');
       userInitials = "${String.fromCharCode(loggedInUserfirstName.codeUnitAt(0))}${String.fromCharCode(loggedInUserlastName.codeUnitAt(0))}";
     });
   }
@@ -194,7 +194,13 @@ class _FindWorkersState extends State<FindWorkers> {
               child: availableWorkers.isEmpty
                   ? Container(
                     margin: const EdgeInsets.only(top: 120),
-                    child: const Text("No staff found.", style: TextStyle(color: Colors.grey, fontFamily: 'Poppins', fontSize: 18),),
+                    child: Text(
+                      textFilter.text.isEmpty ? "No staff found." : "No search results for \"${textFilter.text}\"", 
+                      style: const TextStyle(
+                        color: Colors.grey, 
+                        fontFamily: 'Poppins', 
+                        fontSize: 18),
+                      ),
                   )
                   : GridView.count(
                 crossAxisCount: 2,

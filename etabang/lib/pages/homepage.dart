@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../connector/db_connection.dart';
 import 'common/messaging.dart';
 import 'common/user_profile.dart';
-import 'customer/worker_tracker.dart';
+import 'customer/booking_tracker.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -56,7 +56,7 @@ class _HomepageState extends State<Homepage> {
         _screens = const [
           FindServices(),
           Messaging(),
-          WorkerTracker(),
+          BookingTracker(),
           UserProfile(),
         ];
       });

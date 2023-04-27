@@ -1,22 +1,22 @@
-import 'package:etabang/pages/staff/order_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../connector/db_connection.dart';
 import '../../enums/booking_status.dart';
 import '../../global/vars.dart';
 import '../../models/customer.dart';
 
-class OrderHistory extends StatefulWidget {
-  const OrderHistory({super.key});
+class BookingTracker extends StatefulWidget {
+  const BookingTracker({super.key});
 
   @override
-  State<OrderHistory> createState() => _OrderHistoryState();
+  State<BookingTracker> createState() => _BookingTracker();
 }
 
-class _OrderHistoryState extends State<OrderHistory> {
-  String userName = "";
+class _BookingTracker extends State<BookingTracker> {
+   String userName = "";
   String userInitials = "";
   TextEditingController textFilter = TextEditingController();
   int? userId;
@@ -54,11 +54,11 @@ class _OrderHistoryState extends State<OrderHistory> {
     PostgreSQLConnection connection = await DbConnection().getConnection();
 
     String query = """
-      SELECT b."Id", u."Id", u."FirstName", u."LastName", s."Name", b."Status"
+      SELECT b."Id", u."Id", u."FirstName", u."LastName",  u."PhoneNumber", s."Name", b."Status"
         FROM "Bookings" b
-        LEFT JOIN "Users" u ON b."CustomerId" = u."Id"
+        LEFT JOIN "Users" u ON b."StaffId" = u."Id"
         LEFT JOIN "Services" s ON b."ServiceId" = s."Id"
-        WHERE b."StaffId" = $userId
+        WHERE b."CustomerId" = $userId
           AND (u."FirstName" ILIKE '%${textFilter.text}%' OR u."LastName" ILIKE '%${textFilter.text}%');
       """;
 
@@ -74,7 +74,8 @@ class _OrderHistoryState extends State<OrderHistory> {
             name: "${fetched["Users"]?["FirstName"]} ${fetched["Users"]?["LastName"]}",
             bookingId: fetched["Bookings"]!["Id"],
             bookedService: fetched["Services"]!["Name"],
-            bookingStatus: fetched["Bookings"]!["Status"]));
+            bookingStatus: fetched["Bookings"]!["Status"],
+            phoneNumber: fetched["Users"]!["PhoneNumber"]));
       }
     }
 
@@ -103,7 +104,7 @@ class _OrderHistoryState extends State<OrderHistory> {
             Container(
               margin: const EdgeInsets.only(top: 20, bottom: 30),
               alignment: Alignment.center,
-              child: const Text("Order History",
+              child: const Text("Booking History",
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -150,42 +151,32 @@ class _OrderHistoryState extends State<OrderHistory> {
                   : ListView.builder(
                       itemCount: recentCustomers.length,
                       itemBuilder: (context, index) {
-                        return InkWell(
-                          onTap:() async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => OrderProfile(
-                                  bookingId: recentCustomers[index].bookingId!,
-                                    )
+                        return Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  margin:
+                                      const EdgeInsets.fromLTRB(10, 10, 30, 10),
+                                  width: 80,
+                                  height: 90,
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      image: DecorationImage(
+                                        image: recentCustomers[index]
+                                                .imageUrl
+                                                .isNotEmpty
+                                            ? AssetImage(
+                                                recentCustomers[index].imageUrl)
+                                            : AssetImage(defaulProfileImageUrl),
+                                        fit: BoxFit.cover,
+                                        alignment: Alignment.center,
+                                      )),
                                 ),
-                            );
-                            await _loadRecentCustomers();
-                          },
-                          child: Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    margin:
-                                        const EdgeInsets.fromLTRB(10, 10, 30, 10),
-                                    width: 80,
-                                    height: 90,
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(5),
-                                        image: DecorationImage(
-                                          image: recentCustomers[index]
-                                                  .imageUrl
-                                                  .isNotEmpty
-                                              ? AssetImage(
-                                                  recentCustomers[index].imageUrl)
-                                              : AssetImage(defaulProfileImageUrl),
-                                          fit: BoxFit.cover,
-                                          alignment: Alignment.center,
-                                        )),
-                                  ),
-                                  Container(
+                                Expanded(
+                                  child: Container(
                                       margin:
                                           const EdgeInsets.fromLTRB(0, 0, 0, 0),
                                       height: 100,
@@ -202,6 +193,15 @@ class _OrderHistoryState extends State<OrderHistory> {
                                             style: const TextStyle(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.bold,
+                                                fontFamily: 'Poppins'),
+                                          ),
+                                          Text(
+                                            recentCustomers[index].phoneNumber,
+                                            textAlign: TextAlign.center,
+                                            maxLines: null,
+                                            style: const TextStyle(
+                                                fontSize: 15,
+                                                color: Color(0x97979797),
                                                 fontFamily: 'Poppins'),
                                           ),
                                           Text(
@@ -225,9 +225,36 @@ class _OrderHistoryState extends State<OrderHistory> {
                                                 fontFamily: 'Poppins'),
                                           ),
                                         ],
-                                      ))
-                                ],
-                              ),
+                                      ),
+                                    ),
+                                ),
+
+                                if (recentCustomers[index].phoneNumber.isNotEmpty &&
+                                  (recentCustomers[index].bookingStatus == BookingStatus.booked.index ||
+                                      recentCustomers[index].bookingStatus == BookingStatus.otw.index))
+                                
+                                  Container(
+                                    margin: const EdgeInsets.fromLTRB(0, 25, 20, 20),
+                                    decoration: BoxDecoration(
+                                      color: Colors.cyan,
+                                      borderRadius: BorderRadius.circular(50),
+                                    ),
+                                    child: IconButton(
+                                      icon: const Icon(Icons.phone_outlined),
+                                      color: Colors.white,
+                                      onPressed: () async {
+                                        String _phoneNumber = recentCustomers[index].phoneNumber;
+                                        final url = Uri.parse('tel:$_phoneNumber');
+                                        if (await canLaunchUrl(url)) {
+                                          await launchUrl(url);
+                                        } else {
+                                          throw 'Could not launch $url';
+                                        }
+                                      },
+                                    )
+                                    ),
+                                  
+                              ],
                             ),
                           ),
                         );
