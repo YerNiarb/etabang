@@ -2,6 +2,7 @@ import 'package:etabang/models/service_worker.dart';
 import 'package:etabang/pages/customer/book_service.dart';
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
+import 'package:weekday_selector/weekday_selector.dart';
 import '../../connector/db_connection.dart';
 import '../../global/vars.dart';
 import '../../models/service.dart';
@@ -299,7 +300,29 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                   // ---------- Working Day | Hours
                   Container(
                     margin: const EdgeInsets.fromLTRB(0, 25, 0, 0),
-                    child: const Text("Working Day | Hours",
+                    child: const Text("Working Days",
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Poppins')
+                      ),
+                  ),
+
+                  IgnorePointer(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 10),
+                      child: WeekdaySelector(
+                        textStyle: const TextStyle(color: Colors.black54, inherit: false),
+                        selectedTextStyle: const TextStyle(color: Colors.white, inherit: false),
+                        onChanged:(value) => {},
+                        values: widget.serviceWorker.workingDays,
+                      ),
+                    ),
+                  ),
+
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(0, 25, 0, 0),
+                    child: const Text("Working Hours",
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

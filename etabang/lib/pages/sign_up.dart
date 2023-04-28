@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:etabang/pages/common/registration_payment.dart';
+import 'package:etabang/pages/common/terms_and_conditions.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -245,7 +247,7 @@ class _SignUpState extends State<SignUp> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Full Name',
+                        'First Name',
                         style: TextStyle(
                               fontSize:  15,
                               fontFamily: 'Poppins'
@@ -508,17 +510,32 @@ class _SignUpState extends State<SignUp> {
                           const TextStyle(fontSize:  15, fontFamily: 'Poppins'),
                         )),
                     onPressed: isLoading? null :() async {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const RegistrationPayment()),
+                        );
                       setState(() {
                         isLoading = true;
                       });
                       if(userName.text.isNotEmpty && password.text.isNotEmpty){
-                        await _registerUser(); 
-                         Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const SignIn()),
-                        );
+                        await _registerUser().then((value) => {
+                           if(userType == UserType.customer){
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const SignIn()),
+                            )
+                          }else{
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const RegistrationPayment()),
+                            )
+                          }
+                        }); 
                       }
                       else{
+                        setState(() {
+                          isLoading = false;
+                        });
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Enter required fields.'),
@@ -529,6 +546,52 @@ class _SignUpState extends State<SignUp> {
                     child: isLoading? const CircularProgressIndicator(color: Colors.white,) : const Text('Sign Up')
                   ),
                 ),
+
+                isLoading ? const SizedBox(height: 10,) : 
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'By clicking Sign Up, you agree to our',
+                              style: TextStyle(
+                                      fontSize: 16,
+                                      fontFamily: 'Poppins',
+                                      color: Color(0x97979797),
+                                )
+                            ),
+                            GestureDetector(
+                              onTap: () async{
+
+                                if(firstName.text.isNotEmpty && lastName.text.isNotEmpty){
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => TermsAndConditions(name: "${firstName.text} ${lastName.text}", userType: userType,)),
+                                  );
+                                }
+                                else{
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Enter your name to view Terms and Agreement.'),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: const Text('Terms and Agreement',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.cyan,
+                                  fontFamily: 'Poppins',
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                                ),
+                  ), 
 
                 isLoading ? const SizedBox(height: 10,) : Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16.0),

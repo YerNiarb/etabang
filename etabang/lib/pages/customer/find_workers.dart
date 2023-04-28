@@ -84,8 +84,7 @@ class _FindWorkersState extends State<FindWorkers> {
           kmAway = double.parse(kmAway.toStringAsFixed(2));
         }
 
-        fetchedWorkers.add(
-          ServiceWorker(
+        var fetchedWorker =  ServiceWorker(
             id: fetched["StaffServices"]?["StaffId"], 
             firstName: fetched["Users"]?["FirstName"], 
             lastName: fetched["Users"]?["LastName"], 
@@ -95,9 +94,14 @@ class _FindWorkersState extends State<FindWorkers> {
             userName: "",
             hourlyPrice: fetched["Services"]?["HourlyRate"],
             kmAway: kmAway,
-            workingDays: fetched["Users"]?["WorkingDays"] ?? "",
-            workingHours: fetched["Users"]?["WorkingHours"] ?? "")
-        );
+            workingHours: fetched["Users"]?["WorkingHours"] ?? ""
+          );
+
+          if(fetched["Users"]?["WorkingDays"]){
+            fetchedWorker.workingDays = fetched["Users"]?["WorkingDays"];
+          }
+
+        fetchedWorkers.add(fetchedWorker);
       }
     }
 

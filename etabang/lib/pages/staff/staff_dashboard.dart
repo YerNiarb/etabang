@@ -190,7 +190,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
             ),
             SizedBox(
               height: 130,
-              child: isLoading ? const Align(alignment: Alignment.center, child: const CircularProgressIndicator()) :  Container(
+              child: isLoading ? const Align(alignment: Alignment.center, child: CircularProgressIndicator()) :  Container(
                 padding: const EdgeInsets.fromLTRB(15, 30, 15, 20),
                 decoration: BoxDecoration(
                   color: Colors.cyan,

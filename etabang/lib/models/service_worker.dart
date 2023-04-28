@@ -5,7 +5,7 @@ class ServiceWorker extends User {
   double currentLocationLat;
   double currentLocationLong;
   double kmAway;
-  String workingDays;
+  List<bool> workingDays;
   String workingHours;
 
   ServiceWorker({
@@ -20,7 +20,7 @@ class ServiceWorker extends User {
     this.currentLocationLong = 121.77401699999996,
     this.hourlyPrice = 0.00,
     this.kmAway = 1,
-    this.workingDays = "Mon - Fri",
+    this.workingDays  = const [true, true, true, true, true, true, true],
     this.workingHours = "9:00AM to 3:00PM",
   });
 }
