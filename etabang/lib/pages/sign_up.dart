@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:etabang/pages/common/registration_payment.dart';
 import 'package:etabang/pages/common/terms_and_conditions.dart';
@@ -32,6 +33,7 @@ class _SignUpState extends State<SignUp> {
   bool isLoading = false;
   TextEditingController birthdateController = TextEditingController();
   late LatLng currentLocation;
+  List<int> staffServices = [];
 
   final List<File> _selectedFiles = [];
 
@@ -110,6 +112,22 @@ class _SignUpState extends State<SignUp> {
         }
       }
 
+      if(userType == UserType.staff){
+        generateStaffServices();
+        if(staffServices.isNotEmpty){
+          for (var serviceId in staffServices) {
+            String insertUserDocumentQuery = """ 
+              INSERT INTO public."StaffServices"
+                ("ServiceId", "StaffId")
+                VALUES($serviceId, $userId)
+            """;
+
+            await connection.mappedResultsQuery(insertUserDocumentQuery);
+        
+          }
+        }
+      }
+
       setState(() {
         isLoading = false;
       });
@@ -126,6 +144,25 @@ class _SignUpState extends State<SignUp> {
 
       return;
     }
+  }
+
+  generateStaffServices(){
+    var rng = Random();
+    var lengths = [1, 2, 3, 4]; // set the desired lengths here
+    List<int> result = [];
+
+    for (var i = 0; i < lengths.length; i++) {
+      for (var j = 0; j < lengths[i]; j++) {
+        var value = rng.nextInt(3) + 1;
+        if(!result.contains(value)) {
+          result.add(value);
+        }
+      }
+    }
+
+    setState(() {
+      staffServices = result;
+    });
   }
 
   Future<LatLng> _initializeLocation() async {
@@ -495,12 +532,9 @@ class _SignUpState extends State<SignUp> {
                 Center(
                   child: TextButton(
                     style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all<Color>(Colors.cyan),
-                        foregroundColor:
-                            MaterialStateProperty.all<Color>(Colors.white),
-                        minimumSize:
-                            MaterialStateProperty.all<Size>(const Size(250, 60)),
+                        backgroundColor: MaterialStateProperty.all<Color>(Colors.cyan),
+                        foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                        minimumSize: MaterialStateProperty.all<Size>(const Size(250, 60)),
                         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
@@ -510,26 +544,22 @@ class _SignUpState extends State<SignUp> {
                           const TextStyle(fontSize:  15, fontFamily: 'Poppins'),
                         )),
                     onPressed: isLoading? null :() async {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const RegistrationPayment()),
-                        );
                       setState(() {
                         isLoading = true;
                       });
                       if(userName.text.isNotEmpty && password.text.isNotEmpty){
                         await _registerUser().then((value) => {
-                           if(userType == UserType.customer){
+                          //  if(userType == UserType.customer){
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => const SignIn()),
                             )
-                          }else{
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const RegistrationPayment()),
-                            )
-                          }
+                          // }else{
+                          //   Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(builder: (context) => const RegistrationPayment()),
+                          //   )
+                          // }
                         }); 
                       }
                       else{
@@ -550,47 +580,46 @@ class _SignUpState extends State<SignUp> {
                 isLoading ? const SizedBox(height: 10,) : 
                   Center(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'By clicking Sign Up, you agree to our',
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'By clicking Sign Up, you agree to our',
+                            style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'Poppins',
+                                    color: Color(0x97979797),
+                              )
+                          ),
+                          GestureDetector(
+                            onTap: () async{
+                              if(firstName.text.isNotEmpty && lastName.text.isNotEmpty){
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => TermsAndConditions(name: "${firstName.text} ${lastName.text}", userType: userType, isViewOnly: true,)),
+                                );
+                              }
+                              else{
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Enter your name to view Terms and Agreement.'),
+                                  ),
+                                );
+                              }
+                            },
+                            child: const Text('Terms and Agreement',
                               style: TextStyle(
-                                      fontSize: 16,
-                                      fontFamily: 'Poppins',
-                                      color: Color(0x97979797),
-                                )
-                            ),
-                            GestureDetector(
-                              onTap: () async{
-
-                                if(firstName.text.isNotEmpty && lastName.text.isNotEmpty){
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => TermsAndConditions(name: "${firstName.text} ${lastName.text}", userType: userType,)),
-                                  );
-                                }
-                                else{
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Enter your name to view Terms and Agreement.'),
-                                    ),
-                                  );
-                                }
-                              },
-                              child: const Text('Terms and Agreement',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.cyan,
-                                  fontFamily: 'Poppins',
-                                ),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.cyan,
+                                fontFamily: 'Poppins',
                               ),
-                            )
-                          ],
-                        ),
-                                ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
                   ), 
 
                 isLoading ? const SizedBox(height: 10,) : Padding(

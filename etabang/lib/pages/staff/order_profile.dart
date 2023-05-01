@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:etabang/enums/booking_status.dart';
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
@@ -25,7 +27,7 @@ class _OrderProfileState extends State<OrderProfile> {
   String street = "";
   String city = "";
   String state = "";
-  String? profilePicture = "";
+  String profilePicture = defaulProfileImageUrl;
   int? bookedServiceId;
   double? userLat;
   double? userLng;
@@ -114,8 +116,8 @@ class _OrderProfileState extends State<OrderProfile> {
     String query = """
         SELECT 
           b."Id", ST_X(b."ServiceLocation") AS "Lat", ST_Y(b."ServiceLocation") AS "Lng",
-          u."Id", u."FirstName", u."LastName", u."PhoneNumber",
-          b."Street", b."City", b."State", u."ProfilePicture",
+          u."Id", u."FirstName", u."LastName", u."PhoneNumber", u."ProfilePicture",
+          b."Street", b."City", b."State",
           b."ServiceId", s."Name", b."Status"
           FROM "Bookings" b
           LEFT JOIN "Users" u ON b."CustomerId" = u."Id"
@@ -149,6 +151,7 @@ class _OrderProfileState extends State<OrderProfile> {
         state = booking["Bookings"]?["State"] ?? "";
         bookedServiceId = booking["Bookings"]?["ServiceId"];
         bookingStatus = booking["Bookings"]?["Status"];
+        profilePicture = booking["Users"]?["ProfilePicture"] ?? defaulProfileImageUrl;
 
         serviceToBook = services.firstWhere((service) => service.id == bookedServiceId);
         isLoading = false;
@@ -226,43 +229,39 @@ class _OrderProfileState extends State<OrderProfile> {
                 Expanded(
                   child: Stack(
                     children: <Widget>[
-                      _imageLoaded
-                          ? Container(
-                              margin: const EdgeInsets.fromLTRB(0, 30, 0, 0),
-                              width: double.infinity,
-                              height: 275,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: NetworkImage(
-                                      profilePicture ?? ""),
-                                  fit: BoxFit.cover,
-                                  alignment: Alignment.center,
-                                  onError: (exception, stackTrace) {
-                                    setState(() {
-                                      _imageLoaded = false;
-                                    });
-                                  },
-                                ),
-                                color: Colors.black12,
-                              ),
-                            )
-                          : Container(
-                              margin: const EdgeInsets.fromLTRB(0, 30, 0, 0),
-                              width: double.infinity,
-                              height: 275,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage(defaulProfileImageUrl),
-                                  fit: BoxFit.cover,
-                                  alignment: Alignment.center,
-                                  onError: (exception, stackTrace) {
-                                    setState(() {
-                                      _imageLoaded = false;
-                                    });
-                                  },
-                                ),
-                                color: Colors.black12,
+                      if (profilePicture !=
+                          defaulProfileImageUrl)
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                          width: double.infinity,
+                          height: 275,
+                          decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10)),
+                              image: DecorationImage(
+                                image: MemoryImage(base64.decode(
+                                    profilePicture)),
+                                fit: BoxFit.cover,
+                                alignment: Alignment.center,
                               )),
+                        ),
+                      if (profilePicture ==
+                          defaulProfileImageUrl)
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                          width: double.infinity,
+                          height: 275,
+                          decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10)),
+                              image: DecorationImage(
+                                image: AssetImage(defaulProfileImageUrl),
+                                fit: BoxFit.cover,
+                                alignment: Alignment.center,
+                              )),
+                        ),
                       //Buttons
                       Container(
                         margin: const EdgeInsets.fromLTRB(10, 60, 0, 0),

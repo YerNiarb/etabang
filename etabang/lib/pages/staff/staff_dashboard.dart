@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:etabang/enums/booking_status.dart';
 import 'package:etabang/pages/common/vertical_dashed_line.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +27,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
   double profit = 0.00;
   int? userId;
   bool isLoading = false;
+  String? _image;
 
   List<Customer> recentCustomers = [];
 
@@ -34,7 +37,8 @@ class _StaffDashboardState extends State<StaffDashboard> {
     isLoading = true;
     _loadPreferences().then((value) => {
       _loadDashboardData(),
-      _loadRecentCustomers()
+      _loadRecentCustomers(),
+      _getUserDetails()
     });
   }
 
@@ -54,6 +58,25 @@ class _StaffDashboardState extends State<StaffDashboard> {
       userId =  prefs.getInt('loggedInUserId');
       userInitials = "${String.fromCharCode(loggedInUserfirstName.codeUnitAt(0))}${String.fromCharCode(loggedInUserlastName.codeUnitAt(0))}";
     });
+  }
+
+  Future<void> _getUserDetails() async {
+    PostgreSQLConnection connection = await DbConnection().getConnection();
+
+    String query = """
+        SELECT "ProfilePicture" 
+          FROM "Users"
+          WHERE "Id" = $userId;
+    """;
+    
+    final results = await connection.mappedResultsQuery(query);
+
+    if(results.isNotEmpty){
+      var result = results.first;
+      setState(() {
+        _image = result.values.first["ProfilePicture"];
+      });
+    }
   }
   
   Future<void> _loadDashboardData() async {
@@ -91,7 +114,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
     PostgreSQLConnection connection = await DbConnection().getConnection();
 
     String query = """
-      SELECT b."Id", u."Id", u."FirstName", u."LastName", s."Name"
+      SELECT b."Id", u."Id", u."FirstName", u."LastName", s."Name", u."ProfilePicture"
         FROM "Bookings" b
         LEFT JOIN "Users" u ON b."CustomerId" = u."Id"
         LEFT JOIN "Services" s ON b."ServiceId" = s."Id"
@@ -111,7 +134,8 @@ class _StaffDashboardState extends State<StaffDashboard> {
             id: fetched["Users"]!["Id"],
             name: "${fetched["Users"]?["FirstName"]} ${fetched["Users"]?["LastName"]}",
             bookingId: fetched["Bookings"]!["Id"],
-            bookedService: fetched["Services"]!["Name"]
+            bookedService: fetched["Services"]!["Name"],
+            profilePicture: fetched["Users"]?["ProfilePicture"] ?? defaulProfileImageUrl
           )
         );
       }
@@ -126,13 +150,17 @@ class _StaffDashboardState extends State<StaffDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    CircleAvatar defaultAvatar = CircleAvatar(
-      radius: 30,
-      backgroundColor: Colors.grey[300],
-      child: Text(
-        userInitials,
-        style: const TextStyle(fontSize: 24, color: Colors.white70),
-    ));
+     CircleAvatar defaultAvatar = _image != null ? 
+      CircleAvatar(
+            radius: 50,
+            backgroundColor: Colors.grey[300],
+            backgroundImage:  MemoryImage(base64.decode(_image!)),    
+          ):
+      CircleAvatar(
+          radius: 50,
+          backgroundColor: Colors.grey[300],
+          backgroundImage: const AssetImage('assets/images/default-profile.png'),  
+        );
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -284,18 +312,34 @@ class _StaffDashboardState extends State<StaffDashboard> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              margin: const EdgeInsets.fromLTRB(10, 10, 30, 10),
-                              width: 80,
-                              height: 90,
-                              decoration: BoxDecoration(
+
+                            if(recentCustomers[index].profilePicture != defaulProfileImageUrl)
+                              Container(
+                                margin: const EdgeInsets.fromLTRB(10, 10, 30, 10),
+                                width: 80,
+                                height: 90,
+                                decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(5),
                                   image: DecorationImage(
-                                    image: recentCustomers[index].imageUrl.isNotEmpty ? AssetImage(recentCustomers[index].imageUrl) : AssetImage(defaulProfileImageUrl),
+                                    image: MemoryImage(base64.decode(recentCustomers[index].profilePicture!)),
                                     fit: BoxFit.cover,
                                     alignment: Alignment.center,
                                   )),
-                            ),
+                              ),
+                              if(recentCustomers[index].profilePicture == defaulProfileImageUrl)
+                              Container(
+                                margin: const EdgeInsets.fromLTRB(10, 10, 30, 10),
+                                width: 80,
+                                height: 90,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5),
+                                  image: DecorationImage(
+                                    image: AssetImage(defaulProfileImageUrl),
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.center,
+                                  )),
+                              ),
+                              
                             Container(
                                 margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                                 height: 100,

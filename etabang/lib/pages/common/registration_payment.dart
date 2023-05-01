@@ -1,7 +1,12 @@
+import 'package:etabang/pages/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
+import 'package:postgres/postgres.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../connector/db_connection.dart';
+import '../homepage.dart';
 import '../sign_in.dart';
 
 class RegistrationPayment extends StatelessWidget {
@@ -47,7 +52,7 @@ class RegistrationPayment extends StatelessWidget {
                             borderRadius: BorderRadius.circular(35)
                           ),
                           margin: const EdgeInsets.fromLTRB(0, 50, 0, 40),
-                          child: Image.asset('assets/images/gcash_qr.png'),
+                          child: Image.asset('assets/images/gcash_qr.jpg', height: 100, width: 275,),
                         ),
                       ),
                     ),
@@ -80,14 +85,29 @@ class RegistrationPayment extends StatelessWidget {
                     textStyle: MaterialStateProperty.all<TextStyle>(
                       const TextStyle(fontSize:  15, fontFamily: 'Poppins'),
                     )),
-                onPressed: () {
+                onPressed: () async {
+                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  String firstName = prefs.getString('loggedInUserfirstName') ?? "";
+                  int? userId = prefs.getInt('loggedInUserId');
+
+                  PostgreSQLConnection connection = await DbConnection().getConnection();
+
+                  String query = """
+                      UPDATE "Users"
+                        SET "IsPaid" = true
+                        WHERE "Id" = $userId;
+                  """;
+                  
+                  final results = await connection.mappedResultsQuery(query);
+
                   Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SignIn()),
-                      (route) => false,
-                    );
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => WelcomePage(name: firstName)),
+                    (route) => false,
+                  );
                 },
-                child: const Text('Sign Up')
+                child: const Text('Sign in')
               ),
             ),
           ]

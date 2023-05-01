@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:etabang/pages/customer/view_service_worker_details.dart';
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
@@ -23,6 +25,7 @@ class _FindWorkersState extends State<FindWorkers> {
   double? userLat;
   double? userLng;
   TextEditingController textFilter = TextEditingController();
+  String? _image;
       
   List<ServiceWorker> availableWorkers = [];
 
@@ -63,7 +66,7 @@ class _FindWorkersState extends State<FindWorkers> {
 
     String query = """
         SELECT u."FirstName", u."LastName", ST_X(u."CurrentLocation") AS "Lat", ST_Y(u."CurrentLocation") AS "Lng", u."Street", u."City", u."State", 
-          u."WorkingDays", u."WorkingHours",
+          u."WorkingDays", u."WorkingHours", u."ProfilePicture",
           s."Name" as "ServiceName", ss."ServiceId" as "ServiceId", ss."StaffId" as "StaffId", s."HourlyRate" as "HourlyRate"
           FROM "StaffServices" ss 
           LEFT JOIN "Users" u ON ss."StaffId" = u."Id"  
@@ -94,10 +97,11 @@ class _FindWorkersState extends State<FindWorkers> {
             userName: "",
             hourlyPrice: fetched["Services"]?["HourlyRate"],
             kmAway: kmAway,
-            workingHours: fetched["Users"]?["WorkingHours"] ?? ""
+            workingHours: fetched["Users"]?["WorkingHours"] ?? "",
+            profileImageUrl: fetched["Users"]?["ProfilePicture"] ?? defaulProfileImageUrl
           );
 
-          if(fetched["Users"]?["WorkingDays"]){
+          if(fetched["Users"] != null && fetched["Users"]?["WorkingDays"] != null){
             fetchedWorker.workingDays = fetched["Users"]?["WorkingDays"];
           }
 
@@ -110,23 +114,50 @@ class _FindWorkersState extends State<FindWorkers> {
     });
   }
 
+  
+  Future<void> _getUserDetails() async {
+    PostgreSQLConnection connection = await DbConnection().getConnection();
+
+    String query = """
+        SELECT "ProfilePicture" 
+          FROM "Users"
+          WHERE "Id" = $userId;
+    """;
+    
+    final results = await connection.mappedResultsQuery(query);
+
+    if(results.isNotEmpty){
+      var result = results.first;
+      setState(() {
+        _image = result.values.first["ProfilePicture"];
+      });
+    }
+  }
+
+
   @override
   void initState() {
     super.initState();
     _getAvailableWorkers(); 
-    _loadPreferences();
+    _loadPreferences().then((value) => {
+      _getUserDetails()
+    });
   }
 
 
   @override
   Widget build(BuildContext context) {
-    CircleAvatar defaultAvatar = CircleAvatar(
-      radius: 30,
-      backgroundColor: Colors.grey[300],
-      child: Text(
-        userInitials,
-        style: TextStyle(fontSize: 24, color: Colors.white70),
-      ));
+    CircleAvatar defaultAvatar = _image != null ? 
+      CircleAvatar(
+            radius: 50,
+            backgroundColor: Colors.grey[300],
+            backgroundImage:  MemoryImage(base64.decode(_image!)),    
+          ):
+      CircleAvatar(
+          radius: 50,
+          backgroundColor: Colors.grey[300],
+          backgroundImage: const AssetImage('assets/images/default-profile.png'),  
+        );
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -231,6 +262,7 @@ class _FindWorkersState extends State<FindWorkers> {
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              if(availableWorkers[index].profileImageUrl != defaulProfileImageUrl)
                               Container(
                                 margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                                 width: 160,
@@ -238,7 +270,20 @@ class _FindWorkersState extends State<FindWorkers> {
                                 decoration: BoxDecoration(
                                   borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
                                   image: DecorationImage(
-                                    image: AssetImage(availableWorkers[index].profileImageUrl ?? defaulProfileImageUrl),
+                                    image: MemoryImage(base64.decode(availableWorkers[index].profileImageUrl)),
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.center,
+                                  )),
+                              ),
+                              if(availableWorkers[index].profileImageUrl == defaulProfileImageUrl)
+                              Container(
+                                margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                width: 160,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                                  image: DecorationImage(
+                                    image: AssetImage(defaulProfileImageUrl),
                                     fit: BoxFit.cover,
                                     alignment: Alignment.center,
                                   )),

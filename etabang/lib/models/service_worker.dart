@@ -16,6 +16,7 @@ class ServiceWorker extends User {
     required super.city, 
     required super.state, 
     required super.userName,
+    super.profileImageUrl,
     this.currentLocationLat = 12.879721,
     this.currentLocationLong = 121.77401699999996,
     this.hourlyPrice = 0.00,

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:etabang/models/service_worker.dart';
 import 'package:etabang/pages/customer/book_service.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +20,6 @@ class ViewServiceWorkerDetails extends StatefulWidget {
 }
 
 class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
-  bool _imageLoaded = true;
   List<int> staffServiceIds = [];
   List<Service> services = [];
   late Service serviceToBook;
@@ -95,44 +96,40 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                 Expanded(
                   child: Stack(
                     children: <Widget>[
-                      _imageLoaded
-                          ? Container(
-                              margin: const EdgeInsets.fromLTRB(0, 30, 0, 0),
-                              width: double.infinity,
-                              height: 275,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: NetworkImage(
-                                      widget.serviceWorker.profileImageUrl ?? ""),
-                                  fit: BoxFit.cover,
-                                  alignment: Alignment.center,
-                                  onError: (exception, stackTrace) {
-                                    setState(() {
-                                      _imageLoaded = false;
-                                    });
-                                  },
-                                ),
-                                color: Colors.black12,
-                              ),
-                            )
-                          : Container(
-                              margin: const EdgeInsets.fromLTRB(0, 30, 0, 0),
-                              width: double.infinity,
-                              height: 275,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage(defaulProfileImageUrl),
-                                  fit: BoxFit.cover,
-                                  alignment: Alignment.center,
-                                  onError: (exception, stackTrace) {
-                                    setState(() {
-                                      _imageLoaded = false;
-                                    });
-                                  },
-                                ),
-                                color: Colors.black12,
+                       if (widget.serviceWorker.profileImageUrl !=
+                          defaulProfileImageUrl)
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                          width: double.infinity,
+                          height: 275,
+                          decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10)),
+                              image: DecorationImage(
+                                image: MemoryImage(base64.decode(
+                                    widget.serviceWorker.profileImageUrl!)),
+                                fit: BoxFit.cover,
+                                alignment: Alignment.center,
                               )),
-                      //Buttons
+                        ),
+                      if (widget.serviceWorker.profileImageUrl ==
+                          defaulProfileImageUrl)
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                          width: double.infinity,
+                          height: 275,
+                          decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10)),
+                              image: DecorationImage(
+                                image: AssetImage(defaulProfileImageUrl),
+                                fit: BoxFit.cover,
+                                alignment: Alignment.center,
+                              )),
+                        ),
+                     //Buttons
                       Container(
                         margin: const EdgeInsets.fromLTRB(10, 60, 0, 0),
                         alignment: Alignment.bottomLeft,
@@ -333,7 +330,7 @@ class _ServiceWorkerDetails extends State<ViewServiceWorkerDetails> {
                    Container(
                     margin: const EdgeInsets.fromLTRB(0, 10, 0, 0),
                     child: Text(
-                        "${widget.serviceWorker.workingDays} | ${widget.serviceWorker.workingHours}",
+                        widget.serviceWorker.workingHours,
                         style: const TextStyle(
                           fontSize: 15,
                           fontFamily: 'Poppins',

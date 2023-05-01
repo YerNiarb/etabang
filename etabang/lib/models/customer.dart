@@ -8,6 +8,7 @@ class Customer {
   String imageUrl;
   int bookingStatus;
   String phoneNumber;
+  String? profilePicture;
 
-  Customer({required this.id, this.bookingId, this.name, this.bookedService, this.imageUrl = "", this.bookingStatus = 0, this.phoneNumber = ""});
+  Customer({required this.id, this.bookingId, this.name, this.bookedService, this.imageUrl = "", this.bookingStatus = 0, this.phoneNumber = "", this.profilePicture = "assets/images/default-profile.png"});
 }

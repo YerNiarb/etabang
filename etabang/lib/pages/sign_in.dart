@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../connector/db_connection.dart';
 import '../connector/db_connector.dart';
+import '../enums/user_type.dart';
+import 'common/terms_and_conditions.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -131,7 +133,7 @@ class _SignInState extends State<SignIn> {
                     try {
                       PostgreSQLConnection connection = await DbConnection().getConnection();
                       String query = """ 
-                        SELECT "Id", "FirstName", "LastName", "Username", "Password", "UserType", "City", "State", "Street"
+                        SELECT "Id", "FirstName", "LastName", "Username", "Password", "UserType", "City", "State", "Street", "IsPaid"
                           FROM public."Users"
                           WHERE "Username"='${userName.text}'
                           LIMIT 1;
@@ -156,27 +158,36 @@ class _SignInState extends State<SignIn> {
                         String? city = user.values.first["City"];
                         String? state = user.values.first["State"];
                         String? street = user.values.first["Street"];
-                        var userType = user.values.first["UserType"];
+                        int userType = user.values.first["UserType"];
+                        bool isPaid = user.values.first["IsPaid"] ?? false;
 
                         //check password
                         if(passwordController.text == password){
                           SharedPreferences prefs = await SharedPreferences.getInstance();
                           await prefs.setBool('isLoggedIn', true);
-                          bool isFirstTime = prefs.getBool('isFirstLogin') ?? true;
+                          bool isFirstTime = prefs.getBool('isFirstLogin') ?? false;
 
                           await prefs.setString('loggedInUserfirstName', firstname);
                           await prefs.setString('loggedInUserlastName', lastname ?? "");
                           await prefs.setInt('loggedInUserId', userId);
                           await prefs.setInt('loggedInUserType', userType);
 
-                          if (isFirstTime) {
+
+                          if(!isPaid) {
+                            Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => TermsAndConditions(name: "${firstname} ${lastname}", userType: UserType.values[userType],)),
+                                  (route) => false,
+                                );
+                          }
+                          else if (isFirstTime) {
                               Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => WelcomePage(name: firstname)),
                                 (route) => false,
                               );
-                          } else {
+                          }  else {
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(builder: (context) => const Homepage()),

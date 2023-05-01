@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:etabang/pages/customer/find_workers.dart';
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
@@ -18,6 +20,8 @@ class _FindServicesState extends State<FindServices> {
   String userName = "";
   String userInitials = "";
   TextEditingController textFilter = TextEditingController();
+  int? userId;
+  String? _image;
 
   List<Service> services = [];
 
@@ -25,7 +29,9 @@ class _FindServicesState extends State<FindServices> {
   void initState() {
     super.initState();
     _getServices(); 
-    _loadPreferences();
+    _loadPreferences().then((value) => {
+      _getUserDetails()
+    });
   }
 
   @override
@@ -41,8 +47,28 @@ class _FindServicesState extends State<FindServices> {
 
     setState(() {
       userName = loggedInUserfirstName;
+      userId =  prefs.getInt('loggedInUserId');
       userInitials = "${String.fromCharCode(loggedInUserfirstName.codeUnitAt(0))}${String.fromCharCode(loggedInUserlastName.codeUnitAt(0))}";
     });
+  }
+
+  Future<void> _getUserDetails() async {
+    PostgreSQLConnection connection = await DbConnection().getConnection();
+
+    String query = """
+        SELECT "ProfilePicture" 
+          FROM "Users"
+          WHERE "Id" = $userId;
+    """;
+    
+    final results = await connection.mappedResultsQuery(query);
+
+    if(results.isNotEmpty){
+      var result = results.first;
+      setState(() {
+        _image = result.values.first["ProfilePicture"];
+      });
+    }
   }
   
   Future<void> _getServices() async {
@@ -74,13 +100,17 @@ class _FindServicesState extends State<FindServices> {
 
   @override
   Widget build(BuildContext context) {
-    CircleAvatar defaultAvatar = CircleAvatar(
-      radius: 30,
-      backgroundColor: Colors.grey[300],
-      child: Text(
-        userInitials,
-        style: const TextStyle(fontSize: 24, color: Colors.white70),
-    ));
+    CircleAvatar defaultAvatar = _image != null ? 
+      CircleAvatar(
+            radius: 50,
+            backgroundColor: Colors.grey[300],
+            backgroundImage:  MemoryImage(base64.decode(_image!)),    
+          ):
+      CircleAvatar(
+          radius: 50,
+          backgroundColor: Colors.grey[300],
+          backgroundImage: const AssetImage('assets/images/default-profile.png'),  
+        );
 
     return Scaffold(
       backgroundColor: Colors.white,

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:image_picker/image_picker.dart';
@@ -13,6 +14,7 @@ import 'package:weekday_selector/weekday_selector.dart';
 
 import '../../connector/db_connection.dart';
 import '../../enums/user_type.dart';
+import '../../models/service.dart';
 import '../../models/user_location.dart';
 import '../customer/location_selector.dart';
 
@@ -38,17 +40,29 @@ class _UserProfileState extends State<UserProfile> {
   String workingDays = "";
   String workingHours = "";
 
+  List<int> staffServiceIds = [];
+  List<int> currentStaffServices = [];
+  List<Service> services = [];
+
+  List<int> staffServicesToRemove = [];
+  List<int> staffServicesToAdd = [];
+
+  final picker = ImagePicker();
+  String? _image;
+
   List<bool> days = List<bool>.filled(7, false);
   bool isLoading = false;
-
-  // late File? _imageFile;
 
   @override
   void initState() {
     super.initState();
     isLoading = true;
     _loadPreferences().then((value) => {
-      _getUserDetails()
+      _getUserDetails(),
+      // if(userType == UserType.staff.index){
+      //   _getServices(),
+      //   _getStaffServices()
+      // }
     });
   }
 
@@ -74,6 +88,7 @@ class _UserProfileState extends State<UserProfile> {
         city = result.values.first["City"] ?? "";
         state = result.values.first["State"] ?? "";
         workingHours = result.values.first["WorkingHours"] ?? "";
+        _image = result.values.first["ProfilePicture"];
 
         if(result.values.first["WorkingDays"] != null){
           days = List<bool>.from(result.values.first['WorkingDays']);
@@ -84,17 +99,58 @@ class _UserProfileState extends State<UserProfile> {
     }
   }
 
-  //  Future<void> _getImage() async {
-  //   final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    Future<void> _getServices() async {
+    PostgreSQLConnection connection = await DbConnection().getConnection();
 
-  //   setState(() {
-  //     if (pickedFile != null) {
-  //       _imageFile = File(pickedFile.path);
-  //     }
-  //   });
+    String query = """
+        SELECT "Id", "Name", "HourlyRate"
+          FROM "Services"
+          WHERE "IsActive" = true;
+    """;
+    
+    final results = await connection.mappedResultsQuery(query);
+    List<Service> fetchedServices = [];
 
-  //   widget.onProfilePictureUploaded(_imageFile);
-  // }
+    if(results.isNotEmpty){
+      for (var result in results) {
+        var fetched = result.values.first;
+        fetchedServices.add(
+          Service(
+            id: fetched["Id"], 
+            name: fetched["Name"], 
+            hourlyPrice: fetched["HourlyRate"]
+          )
+        );
+      }
+    }
+
+    setState(() {
+      services = fetchedServices;
+    });
+  }
+
+  Future<void> _getStaffServices() async {
+    PostgreSQLConnection connection = await DbConnection().getConnection();
+
+    String query = """ 
+        SELECT "ServiceId"
+          FROM public."StaffServices"
+          WHERE "StaffId"='$userId';
+      """;
+      
+    final results = await connection.mappedResultsQuery(query);
+    if(results.isNotEmpty){
+      for (var result in results) {
+        var fetched = result;
+        setState(() {
+          staffServiceIds.add(
+            fetched["StaffServices"]?["ServiceId"]
+          );
+        });
+      }
+    }
+  }
+
 
   Future<void> _loadPreferences() async {
     await Future.delayed(Duration.zero);
@@ -144,6 +200,46 @@ class _UserProfileState extends State<UserProfile> {
     );
   }
 
+  Future<void> _uploadImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      final String base64Image = base64.encode(bytes);
+      try {
+        PostgreSQLConnection connection = await DbConnection().getConnection();
+
+        var dayArrayToString = days.join(', ');
+
+        String query = """
+          UPDATE public."Users"
+            SET "ProfilePicture"='$base64Image'
+            WHERE "Id"=$userId;
+        """;
+
+        final results = await connection.mappedResultsQuery(query);
+
+        setState(() {
+          _image = base64Image;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Updated successfully.'),
+            backgroundColor: Colors.cyan,
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to update profile picture.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     TextEditingController firstNameController = TextEditingController(text: firstName);
@@ -151,19 +247,24 @@ class _UserProfileState extends State<UserProfile> {
     TextEditingController usernameController = TextEditingController(text: username);
     TextEditingController phoneNumberController = TextEditingController(text: phonenumber);
     
-    CircleAvatar defaultAvatar = CircleAvatar(
+    CircleAvatar defaultAvatar = _image != null ? 
+      CircleAvatar(
+          radius: 50,
+          backgroundColor: Colors.grey[300],
+          backgroundImage:  MemoryImage(base64.decode(_image!)),
+            child: IconButton(  
+              icon: Icon(Icons.camera_alt, color: Colors.transparent,),
+              onPressed: _uploadImage,
+            )     
+          ):
+      CircleAvatar(
         radius: 50,
         backgroundColor: Colors.grey[300],
-        // backgroundImage: 
-          // _imageFile != null ?
-          // FileImage(_imageFile!) : null,
-          child: 
-          // _imageFile == null ? const Icon(Icons.camera_alt) :
-           Text(
-            userInitials,
-            style: const TextStyle(fontSize: 24, color: Colors.white70),
-          )
-        
+        backgroundImage: const AssetImage('assets/images/default-profile.png'),
+          child: IconButton(  
+            icon: Icon(Icons.camera_alt, color: Colors.transparent,),
+            onPressed: _uploadImage,
+          )  
         );
 
     return Scaffold(
@@ -521,6 +622,54 @@ class _UserProfileState extends State<UserProfile> {
                 ),
               ),
 
+
+              // ---------- SERVICES
+      
+            //  Container(
+            //     margin: const EdgeInsets.only(top: 30),
+            //     child: Row(
+            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //       children: const [
+            //          Text(
+            //           "Services",
+            //           style: TextStyle(
+            //               fontSize: 18,
+            //               fontWeight: FontWeight.bold,
+            //             ),
+            //         )
+            //       ]
+            //     ),
+            //   ),
+  
+            //   Wrap(
+            //     children: [
+            //       for(Service service in services)
+            //         GestureDetector(
+            //           onTap: () {
+                        
+            //           },
+            //           child: Container(
+            //             margin: const EdgeInsets.all(5),
+            //             padding: const EdgeInsets.all(13.0),
+            //             decoration: BoxDecoration(
+            //               color: staffServiceIds.contains(service.id) ? Colors.cyan : Colors.transparent,
+            //               borderRadius: BorderRadius.circular(15.0),
+            //               border: Border.all(
+            //                 color: staffServiceIds.contains(service.id) ? Colors.white : Colors.grey,
+            //               ),
+            //             ),
+            //             child: Text(
+            //               service.name,
+            //               style: TextStyle(
+            //                 fontSize: 15, 
+            //                 color: staffServiceIds.contains(service.id) ? Colors.white : Colors.grey
+            //               ),
+            //             ),
+            //           ),
+            //         )
+            //     ],
+            //   ),
+
               Container(
                 margin: const EdgeInsets.only(top: 100),
                 child: TextButton(
@@ -541,37 +690,37 @@ class _UserProfileState extends State<UserProfile> {
                         )),
                     onPressed: () async {
                        try {
-                        PostgreSQLConnection connection = await DbConnection().getConnection();
+                          PostgreSQLConnection connection = await DbConnection().getConnection();
 
-                        var dayArrayToString = days.join(', ');
+                          var dayArrayToString = days.join(', ');
 
-                        String query = """
-                            UPDATE public."Users"
-                              SET "FirstName"='$firstName', "LastName"='$lastName', "PhoneNumber"='$phonenumber',
-                              "Street"='$street', "City"='$city', "State"='$state', 
-                              "WorkingHours"='$workingHours', 
-                              "Username"='$username', "WorkingDays"=ARRAY[$dayArrayToString]
-                              WHERE "Id"=$userId;
-                        """;
-                        
-                        final results = await connection.mappedResultsQuery(query);
+                          String query = """
+                              UPDATE public."Users"
+                                SET "FirstName"='$firstName', "LastName"='$lastName', "PhoneNumber"='$phonenumber',
+                                "Street"='$street', "City"='$city', "State"='$state', 
+                                "WorkingHours"='$workingHours', 
+                                "Username"='$username', "WorkingDays"=ARRAY[$dayArrayToString]
+                                WHERE "Id"=$userId;
+                          """;
+                          
+                          final results = await connection.mappedResultsQuery(query);
 
-                        if(location != null){
-                           String query = """
-                            UPDATE public."Users"
-                              SET "CurrentLocation"=ST_POINT(${location!.latitude}, ${location!.longitude})
-                              WHERE "Id"=$userId;
-                        """;
-                        
-                        final results = await connection.mappedResultsQuery(query);
+                          if(location != null){
+                            String query = """
+                              UPDATE public."Users"
+                                SET "CurrentLocation"=ST_POINT(${location!.latitude}, ${location!.longitude})
+                                WHERE "Id"=$userId;
+                          """;
+                          
+                          final results = await connection.mappedResultsQuery(query);
                         }
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Updated successfully.'),
-                            backgroundColor: Colors.cyan,
-                          ),
-                        );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Updated successfully.'),
+                              backgroundColor: Colors.cyan,
+                            ),
+                          );
                        } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(

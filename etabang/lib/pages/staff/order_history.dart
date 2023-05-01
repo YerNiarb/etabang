@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:etabang/pages/staff/order_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
@@ -54,7 +56,7 @@ class _OrderHistoryState extends State<OrderHistory> {
     PostgreSQLConnection connection = await DbConnection().getConnection();
 
     String query = """
-      SELECT b."Id", u."Id", u."FirstName", u."LastName", s."Name", b."Status"
+      SELECT b."Id", u."Id", u."FirstName", u."LastName", s."Name", b."Status", u."ProfilePicture"
         FROM "Bookings" b
         LEFT JOIN "Users" u ON b."CustomerId" = u."Id"
         LEFT JOIN "Services" s ON b."ServiceId" = s."Id"
@@ -74,7 +76,9 @@ class _OrderHistoryState extends State<OrderHistory> {
             name: "${fetched["Users"]?["FirstName"]} ${fetched["Users"]?["LastName"]}",
             bookingId: fetched["Bookings"]!["Id"],
             bookedService: fetched["Services"]!["Name"],
-            bookingStatus: fetched["Bookings"]!["Status"]));
+            bookingStatus: fetched["Bookings"]!["Status"],
+            profilePicture: fetched["Users"]?["ProfilePicture"] ?? defaulProfileImageUrl
+            ));
       }
     }
 
@@ -167,24 +171,33 @@ class _OrderHistoryState extends State<OrderHistory> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    margin:
-                                        const EdgeInsets.fromLTRB(10, 10, 30, 10),
-                                    width: 80,
-                                    height: 90,
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(5),
-                                        image: DecorationImage(
-                                          image: recentCustomers[index]
-                                                  .imageUrl
-                                                  .isNotEmpty
-                                              ? AssetImage(
-                                                  recentCustomers[index].imageUrl)
-                                              : AssetImage(defaulProfileImageUrl),
-                                          fit: BoxFit.cover,
-                                          alignment: Alignment.center,
-                                        )),
-                                  ),
+                                  
+                            if(recentCustomers[index].profilePicture != defaulProfileImageUrl)
+                                Container(
+                                  margin: const EdgeInsets.fromLTRB(10, 10, 30, 10),
+                                  width: 80,
+                                  height: 90,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(5),
+                                    image: DecorationImage(
+                                      image: MemoryImage(base64.decode(recentCustomers[index].profilePicture!)),
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.center,
+                                    )),
+                                ),
+                                if(recentCustomers[index].profilePicture == defaulProfileImageUrl)
+                                Container(
+                                  margin: const EdgeInsets.fromLTRB(10, 10, 30, 10),
+                                  width: 80,
+                                  height: 90,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(5),
+                                    image: DecorationImage(
+                                      image: AssetImage(defaulProfileImageUrl),
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.center,
+                                    )),
+                                ),
                                   Container(
                                       margin:
                                           const EdgeInsets.fromLTRB(0, 0, 0, 0),
