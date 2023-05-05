@@ -519,8 +519,9 @@ class _SignUpState extends State<SignUp> {
                     ),
                     Container(
                       margin: const EdgeInsets.only(bottom: 50),
-                      height: 120,
-                      child:  Expanded(
+                      // height: 120,
+                      child:  SizedBox(
+                        height: 120,
                         child: _selectedFiles.isEmpty
                             ? const Center(child: Text('No files selected.'),)
                             : _buildSelectedFilesList(),
