@@ -18,6 +18,18 @@ import '../../models/service.dart';
 import '../../models/user_location.dart';
 import '../customer/location_selector.dart';
 
+class StaffService {
+  int id;
+  int serviceId;
+  bool isActive;
+
+  StaffService({
+    required this.id,
+    required this.serviceId,
+    required this.isActive
+  });
+}
+
 class UserProfile extends StatefulWidget {
   const UserProfile({super.key});
 
@@ -40,12 +52,8 @@ class _UserProfileState extends State<UserProfile> {
   String workingDays = "";
   String workingHours = "";
 
-  List<int> staffServiceIds = [];
-  List<int> currentStaffServices = [];
+  List<StaffService> staffServices = [];
   List<Service> services = [];
-
-  List<int> staffServicesToRemove = [];
-  List<int> staffServicesToAdd = [];
 
   final picker = ImagePicker();
   String? _image;
@@ -59,10 +67,10 @@ class _UserProfileState extends State<UserProfile> {
     isLoading = true;
     _loadPreferences().then((value) => {
       _getUserDetails(),
-      // if(userType == UserType.staff.index){
-      //   _getServices(),
-      //   _getStaffServices()
-      // }
+      if(userType == UserType.staff.index){
+        _getServices(),
+        _getStaffServices()
+      }
     });
   }
 
@@ -99,7 +107,7 @@ class _UserProfileState extends State<UserProfile> {
     }
   }
 
-    Future<void> _getServices() async {
+  Future<void> _getServices() async {
     PostgreSQLConnection connection = await DbConnection().getConnection();
 
     String query = """
@@ -133,7 +141,7 @@ class _UserProfileState extends State<UserProfile> {
     PostgreSQLConnection connection = await DbConnection().getConnection();
 
     String query = """ 
-        SELECT "ServiceId"
+        SELECT *
           FROM public."StaffServices"
           WHERE "StaffId"='$userId';
       """;
@@ -143,8 +151,11 @@ class _UserProfileState extends State<UserProfile> {
       for (var result in results) {
         var fetched = result;
         setState(() {
-          staffServiceIds.add(
-            fetched["StaffServices"]?["ServiceId"]
+          staffServices.add(
+            StaffService(
+              id: fetched["StaffServices"]?["Id"],
+              serviceId: fetched["StaffServices"]?["ServiceId"], 
+              isActive: fetched["StaffServices"]?["IsActive"])
           );
         });
       }
@@ -625,50 +636,84 @@ class _UserProfileState extends State<UserProfile> {
 
               // ---------- SERVICES
       
-            //  Container(
-            //     margin: const EdgeInsets.only(top: 30),
-            //     child: Row(
-            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //       children: const [
-            //          Text(
-            //           "Services",
-            //           style: TextStyle(
-            //               fontSize: 18,
-            //               fontWeight: FontWeight.bold,
-            //             ),
-            //         )
-            //       ]
-            //     ),
-            //   ),
+             Container(
+                margin: const EdgeInsets.only(top: 30, bottom: 15),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                     Text(
+                      "Services",
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                    )
+                  ]
+                ),
+              ),
   
-            //   Wrap(
-            //     children: [
-            //       for(Service service in services)
-            //         GestureDetector(
-            //           onTap: () {
-                        
-            //           },
-            //           child: Container(
-            //             margin: const EdgeInsets.all(5),
-            //             padding: const EdgeInsets.all(13.0),
-            //             decoration: BoxDecoration(
-            //               color: staffServiceIds.contains(service.id) ? Colors.cyan : Colors.transparent,
-            //               borderRadius: BorderRadius.circular(15.0),
-            //               border: Border.all(
-            //                 color: staffServiceIds.contains(service.id) ? Colors.white : Colors.grey,
-            //               ),
-            //             ),
-            //             child: Text(
-            //               service.name,
-            //               style: TextStyle(
-            //                 fontSize: 15, 
-            //                 color: staffServiceIds.contains(service.id) ? Colors.white : Colors.grey
-            //               ),
-            //             ),
-            //           ),
-            //         )
-            //     ],
-            //   ),
+              Wrap(
+                children: [
+                  for(Service service in services)
+                    GestureDetector(
+                      onTap: () async {
+                        PostgreSQLConnection connection = await DbConnection().getConnection();
+
+                        var staffService = staffServices.where((element) => element.serviceId == service.id);
+                        if(staffService.isNotEmpty){
+                          var sService = staffService.first;
+
+                          String query = """ 
+                            UPDATE public."StaffServices"
+                              SET "IsActive"=${!sService.isActive}
+                              WHERE "Id"='${sService.id}';
+                          """;
+
+                          final results = await connection.mappedResultsQuery(query);
+
+                          setState(() {
+                            staffServices.where((element) => element.serviceId == service.id).first.isActive = !sService.isActive;
+                          });
+                        }else{
+                           String query = """ 
+                            INSERT INTO public."StaffServices" ("ServiceId", "StaffId", "IsActive")
+                              VALUES (${service.id}, $userId, true)
+                              RETURNING "Id";
+                          """;
+                          
+                          final insertResult = await connection.mappedResultsQuery(query);
+                          final newStaffService = insertResult[0];
+                          final staffServiceId = newStaffService.values.first["Id"];
+
+                          setState(() {
+                            staffServices.add(
+                              StaffService(id: staffServiceId, serviceId: service.id, isActive: true)
+                            );
+                          });
+                        }
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.all(5),
+                        padding: const EdgeInsets.all(13.0),
+                        decoration: BoxDecoration(
+                          color: 
+                            staffServices.where((element) => element.serviceId == service.id).isNotEmpty && staffServices.where((element) => element.serviceId == service.id).first.isActive ? Colors.cyan : Colors.transparent,
+                          borderRadius: BorderRadius.circular(15.0),
+                          border: Border.all(
+                            color: staffServices.where((element) => element.serviceId == service.id).isNotEmpty && staffServices.where((element) => element.serviceId == service.id).first.isActive ? Colors.white : Colors.grey,
+                          ),
+                        ),
+                        child: Text(
+                          service.name,
+                          style: TextStyle(
+                            fontSize: 15, 
+                            color: staffServices.where((element) => element.serviceId == service.id).isNotEmpty && staffServices.where((element) => element.serviceId == service.id).first.isActive ? Colors.white : Colors.grey
+                          ),
+                        ),
+                      ),
+                    )
+                ],
+              ),
 
               Container(
                 margin: const EdgeInsets.only(top: 100),
