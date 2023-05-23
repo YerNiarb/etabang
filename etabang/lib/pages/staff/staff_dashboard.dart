@@ -105,7 +105,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
         numberOfServices = servicesCount;
       }
       if(profitSum != null){
-        profit = double.parse(profitSum);
+        profit = profitSum;
       }
     });
   }

@@ -7,7 +7,7 @@ class DbConnector {
 
   Future<void> connect() async {
     _connection = PostgreSQLConnection(
-      "etabang-dev.ccxiix7tthih.us-west-1.rds.amazonaws.com",
+      "34.118.203.41",
       5432,
       "etabang-dev",
       username: "postgres",

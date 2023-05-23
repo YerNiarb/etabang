@@ -219,6 +219,7 @@ class _FindServicesState extends State<FindServices> {
                               Container(
                                   margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                                   height: 100,
+                                  width: 225,
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -226,7 +227,7 @@ class _FindServicesState extends State<FindServices> {
                                       Text(
                                         services[index].name,
                                         textAlign: TextAlign.center,
-                                        maxLines: null,
+                                          overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,

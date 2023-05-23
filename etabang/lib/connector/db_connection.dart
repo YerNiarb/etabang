@@ -3,11 +3,11 @@ import 'package:postgres/postgres.dart';
 class DbConnection {
   static final DbConnection _singleton = DbConnection._internal();
   final PostgreSQLConnection _connection = PostgreSQLConnection(
-        "10.10.10.10",
+        "34.118.203.41",
         5432,
         "etabang-dev",
         username: "postgres",
-        password: "postgres",
+        password: "etabang2023",
       );
 
   factory DbConnection() {

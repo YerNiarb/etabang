@@ -206,7 +206,7 @@ class _BookingTracker extends State<BookingTracker> {
                                           ),
                                           Text(
                                             '${recentCustomers[index].bookedService}',
-                                            textAlign: TextAlign.center,
+                                            // textAlign: TextAlign.center,
                                             maxLines: null,
                                             style: const TextStyle(
                                                 fontSize: 15,
