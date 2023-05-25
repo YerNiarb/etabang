@@ -326,394 +326,137 @@ class _BookServiceState extends State<BookService> {
                   //PAYMENT
                   Step(
                     title: const Text('Payment Details'),
-                    content: Container(
-                      margin: const EdgeInsets.only(bottom: 25),
-                      child: Column(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 20),
-                            child: Card(
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
-                                child: Row(
-                                  children: [
-                                    IntegerInput(
-                                      initialValue: 1,
-                                      minValue: 1,
-                                      maxValue: 99,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _bookingDetails.numberOfHours = value;
-                                          _bookingDetails.subTotal = (value * widget.hourlyPrice);
-                                        });
-                                      },
-                                    ),
-                                    SizedBox(
-                                      width: 150,
-                                      child: Text(
-                                        widget.serviceName,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Poppins'
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                                      child: SizedBox(
-                                        width: 70,
-                                        child: Text(
-                                          "₱ ${widget.hourlyPrice}/hour",
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            overflow: TextOverflow.ellipsis,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.grey
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 20),
-                            child: InkWell(
-                              onTap: () async {
-                                DateTime? selectedDate = await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime.now(),
-                                  lastDate: DateTime(2100),
-                                );
-                                if (selectedDate != null) {
-                                  setState(() {
-                                    _bookingDetails.bookingDate = selectedDate;
-                                  });
-                                }
-                              },
-                              child: Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
-                                  child: Row(
-                                    children: [
-                                       SizedBox(
-                                        width: 75,
-                                        child: Container(
-                                          height: 40,
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Color(0xFFE3FBFF),
-                                          ),
-                                          child: const Icon(
-                                            Icons.calendar_month_outlined,
-                                            color: Colors.cyan,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 200,
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            const Text(
-                                              "Service Date",
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Poppins'
-                                              ),
-                                            ),
-                                            Text(
-                                              DateFormat('EEEE, dd MMM yyyy').format(_bookingDetails.bookingDate),
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Poppins',
-                                                color: Colors.grey
-                                              ),
-                                            ),
-                                          ]
-                                        ),
-                                      ),
-                                      Container(
-                                        margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                                        child: const SizedBox(
-                                          width: 60,
-                                          child: Icon(
-                                            Icons.chevron_right,
-                                            color: Colors.red,
-                                            size: 30,
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 20),
-                            child: InkWell(
-                              onTap: () async {
-                                TimeOfDay? seletedTime = await showTimePicker(
-                                  context: context,
-                                  initialTime: TimeOfDay.now(),
-                                );
-                                if (seletedTime != null) {
-                                  setState(() {
-                                    _bookingDetails.bookingTime = seletedTime;
-                                  });
-                                }
-                              },
-                              child: Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
-                                  child: Row(
-                                    children: [
-                                      SizedBox(
-                                        width: 75,
-                                        child: Container(
-                                          height: 40,
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Color(0xFFE3FBFF),
-                                          ),
-                                          child: const Icon(
-                                            Icons.access_time_outlined,
-                                            color: Colors.cyan,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 200,
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            const Text(
-                                              "Service Time",
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Poppins'
-                                              ),
-                                            ),
-                                            Text(
-                                              _bookingDetails.bookingTime.format(context),
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Poppins',
-                                                color: Colors.grey
-                                              ),
-                                            ),
-                                          ]
-                                        ),
-                                      ),
-                                      Container(
-                                        margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                                        child: const SizedBox(
-                                          width: 60,
-                                          child: Icon(
-                                            Icons.chevron_right,
-                                            color: Colors.red,
-                                            size: 30,
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(left: 5, right: 5, bottom: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "SubTotal",
-                                  style: TextStyle(
-                                    fontSize: 18, 
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey[700]
-                                  ),
-                                ),
-                                Text(
-                                  "₱ ${_bookingDetails.subTotal}",
-                                  style: TextStyle(
-                                    fontSize: 18, 
-                                    // fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey[700]
-                                  ),
-                                )
-                              ]
-                            ),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(left: 5, right:5, bottom: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Travel Fee",
-                                  style: TextStyle(
-                                    fontSize: 18, 
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey[700]
-                                  ),
-                                ),
-                                Text(
-                                  "₱ ${_bookingDetails.travelFee}",
-                                  style: TextStyle(
-                                    fontSize: 18, 
-                                    // fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey[700]
-                                  ),
-                                )
-                              ]
-                            ),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(left: 5, right:5, bottom: 10),
-                            child: Text(
-                              "The travel fee depends on the rider and the client’s address/location.",
-                              maxLines: null,
-                              style: TextStyle(
-                                fontSize: 15, 
-                                fontFamily: 'Poppins',
-                                color: Colors.grey[400]
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    isActive: _currentStep >= 1,
-                  ),
-
-                  // CHECKOUT
-                  Step(
-                    title: const Text('Checkout'),
-                    content: Container(
-                      margin: const EdgeInsets.only(bottom: 25),
+                    content: SingleChildScrollView(
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 25),
                         child: Column(
                           children: [
                             Container(
                               margin: const EdgeInsets.only(bottom: 20),
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
+                                  child: Row(
+                                    children: [
+                                      IntegerInput(
+                                        initialValue: 1,
+                                        minValue: 1,
+                                        maxValue: 99,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _bookingDetails.numberOfHours = value;
+                                            _bookingDetails.subTotal = (value * widget.hourlyPrice);
+                                          });
+                                        },
+                                      ),
+                                      Flexible(
+                                        child: SizedBox(
+                                          width: 150,
+                                          child: Text(
+                                            widget.serviceName,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Poppins'
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                        child: SizedBox(
+                                          width: 70,
+                                          child: Text(
+                                            "₱ ${widget.hourlyPrice}/hour",
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              overflow: TextOverflow.ellipsis,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 20),
                               child: InkWell(
                                 onTap: () async {
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => LocationSelector()
-                                    ),
+                                  DateTime? selectedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime.now(),
+                                    lastDate: DateTime(2100),
                                   );
-
-                                  if(result != null){
-                                    UserLocation selectedLocation = result as UserLocation;
+                                  if (selectedDate != null) {
                                     setState(() {
-                                      _bookingDetails.latLong = LatLng(selectedLocation.lat, selectedLocation.lng);
-                                      _bookingDetails.street = selectedLocation.street;
-                                      _bookingDetails.city = selectedLocation.city;
-                                      _bookingDetails.state = selectedLocation.state;
+                                      _bookingDetails.bookingDate = selectedDate;
                                     });
                                   }
                                 },
                                 child: Card(
                                   child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(0, 25, 0, 0),
-                                    child: Column(
+                                    padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
+                                    child: Row(
                                       children: [
-                                        Row(
-                                          children: [
-                                            SizedBox(
-                                              width: 75,
-                                              child: Container(
-                                                height: 40,
-                                                decoration: const BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: Color(0xFFE3FBFF),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.location_on,
-                                                  color: Colors.cyan,
-                                                ),
-                                              ),
+                                         SizedBox(
+                                          width: 75,
+                                          child: Container(
+                                            height: 40,
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Color(0xFFE3FBFF),
                                             ),
-                                            SizedBox(
-                                              width: 200,
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  const Text(
-                                                    "Service Location",
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight: FontWeight.bold,
-                                                      fontFamily: 'Poppins'
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    _bookingDetails == null || 
-                                                      _bookingDetails.latLong == null ? "Location not selected." : "${_bookingDetails.street}, ${_bookingDetails.city}, ${_bookingDetails.state}",
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: const TextStyle(
-                                                      fontWeight: FontWeight.bold,
-                                                      fontFamily: 'Poppins',
-                                                      color: Colors.grey
-                                                    ),
-                                                  ),
-                                                ]
-                                              ),
+                                            child: const Icon(
+                                              Icons.calendar_month_outlined,
+                                              color: Colors.cyan,
                                             ),
-                                            Container(
-                                              margin: EdgeInsets.only(left: 5),
-                                              child: const SizedBox(
-                                                width: 60,
-                                                child: Icon(
-                                                  Icons.chevron_right,
-                                                  color: Colors.cyan,
-                                                  size: 30,
-                                                ),
-                                              ),
-                                            )
-                                          ],
+                                          ),
                                         ),
-                                        StatefulBuilder(
-                                          builder: (BuildContext context, StateSetter setState) {
-                                            return Container(
-                                              margin: const EdgeInsets.only(top: 20),
-                                              child: SizedBox(
-                                                height: 150,
-                                                child: GoogleMap(
-                                                  onMapCreated: _onMapCreated,
-                                                  initialCameraPosition: CameraPosition(
-                                                    target: _bookingDetails.latLong == null ? const LatLng(14.599512, 120.984222) : _bookingDetails.latLong!,
-                                                    zoom: 12.0,
+                                        Flexible(
+                                          child: SizedBox(
+                                            width: 200,
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  "Service Date",
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: 'Poppins'
                                                   ),
-                                                  markers: _markers,
-                                                  mapType: MapType.normal,
                                                 ),
-                                              ),
-                                            );
-                                          }
+                                                Text(
+                                                  DateFormat('EEEE, dd MMM yyyy').format(_bookingDetails.bookingDate),
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: 'Poppins',
+                                                    color: Colors.grey
+                                                  ),
+                                                ),
+                                              ]
+                                            ),
+                                          ),
                                         ),
+                                        Container(
+                                          margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                          child: const SizedBox(
+                                            width: 60,
+                                            child: Icon(
+                                              Icons.chevron_right,
+                                              color: Colors.red,
+                                              size: 30,
+                                            ),
+                                          ),
+                                        )
                                       ],
                                     ),
                                   ),
@@ -722,240 +465,511 @@ class _BookServiceState extends State<BookService> {
                             ),
                             Container(
                               margin: const EdgeInsets.only(bottom: 20),
-                              child: Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        width: double.infinity,
-                                        margin: const EdgeInsets.only(left: 20),
-                                        child: const SizedBox(
-                                          width: 200,
-                                          child: Text(
-                                            "Payment Method",
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 19,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: 'Poppins'
+                              child: InkWell(
+                                onTap: () async {
+                                  TimeOfDay? seletedTime = await showTimePicker(
+                                    context: context,
+                                    initialTime: TimeOfDay.now(),
+                                  );
+                                  if (seletedTime != null) {
+                                    setState(() {
+                                      _bookingDetails.bookingTime = seletedTime;
+                                    });
+                                  }
+                                },
+                                child: Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
+                                    child: Row(
+                                      children: [
+                                        SizedBox(
+                                          width: 75,
+                                          child: Container(
+                                            height: 40,
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Color(0xFFE3FBFF),
+                                            ),
+                                            child: const Icon(
+                                              Icons.access_time_outlined,
+                                              color: Colors.cyan,
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      Container(
-                                        margin: const EdgeInsets.only(top: 20),
-                                        child: Row(
-                                          children: [
-                                             SizedBox(
-                                              width: 75,
-                                              child: Container(
-                                                height: 40,
-                                                decoration: const BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: Color(0xFFE3FBFF),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.wallet,
-                                                  color: Colors.cyan,
-                                                ),
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              width: 200,
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: const [
-                                                  Text(
-                                                    "COD",
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight: FontWeight.bold,
-                                                      fontFamily: 'Poppins'
-                                                    ),
+                                        Flexible(
+                                          child: SizedBox(
+                                            width: 200,
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  "Service Time",
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: 'Poppins'
                                                   ),
-                                                  Text(
-                                                    "Cash On Delivery",
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontWeight: FontWeight.bold,
-                                                      fontFamily: 'Poppins',
-                                                      color: Colors.grey
-                                                    ),
+                                                ),
+                                                Text(
+                                                  _bookingDetails.bookingTime.format(context),
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: 'Poppins',
+                                                    color: Colors.grey
                                                   ),
-                                                ]
-                                              ),
+                                                ),
+                                              ]
                                             ),
-                                            Container(
-                                              height: 30,
-                                                decoration: const BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: Color(0xFFE3FBFF),
-                                                ),
-                                              child: const SizedBox(
-                                                width: 60,
-                                                child: Icon(
-                                                  Icons.circle,
-                                                  color: Colors.cyan,
-                                                  size: 15,
-                                                ),
-                                              ),
-                                            )
-                                          ]
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                        Container(
+                                          margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                          child: const SizedBox(
+                                            width: 60,
+                                            child: Icon(
+                                              Icons.chevron_right,
+                                              color: Colors.red,
+                                              size: 30,
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                             Container(
-                              margin: const EdgeInsets.only(bottom: 5),
-                              child: Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        width: double.infinity,
-                                        margin: const EdgeInsets.only(left: 20),
-                                        child: const SizedBox(
-                                          width: 200,
-                                          child: Text(
-                                            "Summary",
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 19,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: 'Poppins'
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Container(
-                                        margin: const EdgeInsets.only(top: 20),
-                                        padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              "${_bookingDetails.numberOfHours}x ${widget.serviceName}",
-                                              maxLines: null,
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                fontFamily: 'Poppins',
-                                                color: Colors.grey,
-                                                overflow: TextOverflow.clip
-                                              ),
-                                            ),
-                                            Text(
-                                              "₱ ${widget.hourlyPrice}",
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.grey,
-                                                overflow: TextOverflow.clip
-                                              ),
-                                            )
-                                          ]
-                                        ),
-                                      ),
-                                      Container(
-                                        margin: const EdgeInsets.only(top:10, left: 18, right: 18),
-                                        height: 1,
-                                        color: Colors.grey,
-                                      ),
-                                      Container(
-                                        margin: const EdgeInsets.only(top: 10),
-                                        padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text(
-                                              "SubTotal",
-                                              maxLines: null,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontFamily: 'Poppins',
-                                                color: Colors.grey,
-                                                overflow: TextOverflow.clip
-                                              ),
-                                            ),
-                                            Text(
-                                              "₱ ${_bookingDetails.subTotal}",
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.grey,
-                                                overflow: TextOverflow.clip
-                                              ),
-                                            )
-                                          ]
-                                        ),
-                                      ),
-                                      Container(
-                                        margin: const EdgeInsets.only(top: 10),
-                                        padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text(
-                                              "Travel Fee",
-                                              maxLines: null,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontFamily: 'Poppins',
-                                                color: Colors.grey,
-                                                overflow: TextOverflow.clip
-                                              ),
-                                            ),
-                                            Text(
-                                              "₱ ${_bookingDetails.travelFee}",
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.grey,
-                                                overflow: TextOverflow.clip
-                                              ),
-                                            )
-                                          ]
-                                        ),
-                                      ),
-                                      Container(
-                                        margin: const EdgeInsets.only(top: 10),
-                                        padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text(
-                                              "Total",
-                                              maxLines: null,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontFamily: 'Poppins',
-                                                color: Colors.grey,
-                                                overflow: TextOverflow.clip,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(
-                                              "₱ ${_bookingDetails.subTotal + _bookingDetails.travelFee}",
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.grey,
-                                                overflow: TextOverflow.clip,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            )
-                                          ]
-                                        ),
-                                      ),
-                                    ],
+                              margin: const EdgeInsets.only(left: 5, right: 5, bottom: 10),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "SubTotal",
+                                    style: TextStyle(
+                                      fontSize: 18, 
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey[700]
+                                    ),
                                   ),
+                                  Text(
+                                    "₱ ${_bookingDetails.subTotal}",
+                                    style: TextStyle(
+                                      fontSize: 18, 
+                                      // fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey[700]
+                                    ),
+                                  )
+                                ]
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.only(left: 5, right:5, bottom: 10),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Travel Fee",
+                                    style: TextStyle(
+                                      fontSize: 18, 
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey[700]
+                                    ),
+                                  ),
+                                  Text(
+                                    "₱ ${_bookingDetails.travelFee}",
+                                    style: TextStyle(
+                                      fontSize: 18, 
+                                      // fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey[700]
+                                    ),
+                                  )
+                                ]
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.only(left: 5, right:5, bottom: 10),
+                              child: Text(
+                                "The travel fee depends on the rider and the client’s address/location.",
+                                maxLines: null,
+                                style: TextStyle(
+                                  fontSize: 15, 
+                                  fontFamily: 'Poppins',
+                                  color: Colors.grey[400]
                                 ),
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                    ),
+                    isActive: _currentStep >= 1,
+                  ),
+
+                  // CHECKOUT
+                  Step(
+                    title: const Text('Checkout'),
+                    content: SingleChildScrollView(
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 25),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 25),
+                          child: Column(
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 20),
+                                child: InkWell(
+                                  onTap: () async {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => LocationSelector()
+                                      ),
+                                    );
+                    
+                                    if(result != null){
+                                      UserLocation selectedLocation = result as UserLocation;
+                                      setState(() {
+                                        _bookingDetails.latLong = LatLng(selectedLocation.lat, selectedLocation.lng);
+                                        _bookingDetails.street = selectedLocation.street;
+                                        _bookingDetails.city = selectedLocation.city;
+                                        _bookingDetails.state = selectedLocation.state;
+                                      });
+                                    }
+                                  },
+                                  child: Card(
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(0, 25, 0, 0),
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            children: [
+                                              SizedBox(
+                                                width: 75,
+                                                child: Container(
+                                                  height: 40,
+                                                  decoration: const BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: Color(0xFFE3FBFF),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.location_on,
+                                                    color: Colors.cyan,
+                                                  ),
+                                                ),
+                                              ),
+                                              Flexible(
+                                                child: SizedBox(
+                                                  width: 200,
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      const Text(
+                                                        "Service Location",
+                                                        overflow: TextOverflow.ellipsis,
+                                                        style: TextStyle(
+                                                          fontSize: 18,
+                                                          fontWeight: FontWeight.bold,
+                                                          fontFamily: 'Poppins'
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        _bookingDetails == null || 
+                                                          _bookingDetails.latLong == null ? "Location not selected." : "${_bookingDetails.street}, ${_bookingDetails.city}, ${_bookingDetails.state}",
+                                                        overflow: TextOverflow.ellipsis,
+                                                        style: const TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontFamily: 'Poppins',
+                                                          color: Colors.grey
+                                                        ),
+                                                      ),
+                                                    ]
+                                                  ),
+                                                ),
+                                              ),
+                                              Container(
+                                                margin: EdgeInsets.only(left: 5),
+                                                child: const SizedBox(
+                                                  width: 60,
+                                                  child: Icon(
+                                                    Icons.chevron_right,
+                                                    color: Colors.cyan,
+                                                    size: 30,
+                                                  ),
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                          StatefulBuilder(
+                                            builder: (BuildContext context, StateSetter setState) {
+                                              return Container(
+                                                margin: const EdgeInsets.only(top: 20),
+                                                child: SizedBox(
+                                                  height: 150,
+                                                  child: GoogleMap(
+                                                    onMapCreated: _onMapCreated,
+                                                    initialCameraPosition: CameraPosition(
+                                                      target: _bookingDetails.latLong == null ? const LatLng(14.599512, 120.984222) : _bookingDetails.latLong!,
+                                                      zoom: 12.0,
+                                                    ),
+                                                    markers: _markers,
+                                                    mapType: MapType.normal,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 20),
+                                child: Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          width: double.infinity,
+                                          margin: const EdgeInsets.only(left: 20),
+                                          child: const SizedBox(
+                                            width: 200,
+                                            child: Text(
+                                              "Payment Method",
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 19,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: 'Poppins'
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          margin: const EdgeInsets.only(top: 20),
+                                          child: Row(
+                                            children: [
+                                               Flexible(
+                                                 child: SizedBox(
+                                                  width: 75,
+                                                  child: Container(
+                                                    height: 40,
+                                                    decoration: const BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color: Color(0xFFE3FBFF),
+                                                    ),
+                                                    child: const Icon(
+                                                      Icons.wallet,
+                                                      color: Colors.cyan,
+                                                    ),
+                                                  ),
+                                                                                           ),
+                                               ),
+                                              SizedBox(
+                                                width: 200,
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: const [
+                                                    Text(
+                                                      "COD",
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontFamily: 'Poppins'
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "Cash On Delivery",
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontFamily: 'Poppins',
+                                                        color: Colors.grey
+                                                      ),
+                                                    ),
+                                                  ]
+                                                ),
+                                              ),
+                                              Container(
+                                                height: 30,
+                                                  decoration: const BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: Color(0xFFE3FBFF),
+                                                  ),
+                                                child: const SizedBox(
+                                                  width: 60,
+                                                  child: Icon(
+                                                    Icons.circle,
+                                                    color: Colors.cyan,
+                                                    size: 15,
+                                                  ),
+                                                ),
+                                              )
+                                            ]
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 5),
+                                child: Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(5, 25, 5, 25),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          width: double.infinity,
+                                          margin: const EdgeInsets.only(left: 20),
+                                          child: const SizedBox(
+                                            width: 200,
+                                            child: Text(
+                                              "Summary",
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 19,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: 'Poppins'
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          margin: const EdgeInsets.only(top: 20),
+                                          padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "${_bookingDetails.numberOfHours}x ${widget.serviceName}",
+                                                maxLines: null,
+                                                style: const TextStyle(
+                                                  fontSize: 15,
+                                                  fontFamily: 'Poppins',
+                                                  color: Colors.grey,
+                                                  overflow: TextOverflow.clip
+                                                ),
+                                              ),
+                                              Text(
+                                                "₱ ${widget.hourlyPrice}",
+                                                style: const TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.grey,
+                                                  overflow: TextOverflow.clip
+                                                ),
+                                              )
+                                            ]
+                                          ),
+                                        ),
+                                        Container(
+                                          margin: const EdgeInsets.only(top:10, left: 18, right: 18),
+                                          height: 1,
+                                          color: Colors.grey,
+                                        ),
+                                        Container(
+                                          margin: const EdgeInsets.only(top: 10),
+                                          padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text(
+                                                "SubTotal",
+                                                maxLines: null,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontFamily: 'Poppins',
+                                                  color: Colors.grey,
+                                                  overflow: TextOverflow.clip
+                                                ),
+                                              ),
+                                              Text(
+                                                "₱ ${_bookingDetails.subTotal}",
+                                                style: const TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.grey,
+                                                  overflow: TextOverflow.clip
+                                                ),
+                                              )
+                                            ]
+                                          ),
+                                        ),
+                                        Container(
+                                          margin: const EdgeInsets.only(top: 10),
+                                          padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text(
+                                                "Travel Fee",
+                                                maxLines: null,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontFamily: 'Poppins',
+                                                  color: Colors.grey,
+                                                  overflow: TextOverflow.clip
+                                                ),
+                                              ),
+                                              Text(
+                                                "₱ ${_bookingDetails.travelFee}",
+                                                style: const TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.grey,
+                                                  overflow: TextOverflow.clip
+                                                ),
+                                              )
+                                            ]
+                                          ),
+                                        ),
+                                        Container(
+                                          margin: const EdgeInsets.only(top: 10),
+                                          padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text(
+                                                "Total",
+                                                maxLines: null,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontFamily: 'Poppins',
+                                                  color: Colors.grey,
+                                                  overflow: TextOverflow.clip,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                "₱ ${_bookingDetails.subTotal + _bookingDetails.travelFee}",
+                                                style: const TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.grey,
+                                                  overflow: TextOverflow.clip,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              )
+                                            ]
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

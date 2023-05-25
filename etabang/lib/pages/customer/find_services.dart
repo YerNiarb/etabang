@@ -216,54 +216,56 @@ class _FindServicesState extends State<FindServices> {
                                       alignment: Alignment.center,
                                     )),
                               ),
-                              Container(
-                                  margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                  height: 100,
-                                  width: 225,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        services[index].name,
-                                        textAlign: TextAlign.center,
-                                          overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            fontFamily: 'Poppins'),
-                                      ),
-                                      Row(
-                                        children: [
-                                          Container(
-                                            margin: const EdgeInsets.fromLTRB(
-                                                0, 0, 10, 0),
-                                            padding: EdgeInsets.all(8.0),
-                                            decoration: BoxDecoration(
-                                              color: Colors.lightBlue[50],
-                                              borderRadius:
-                                                  BorderRadius.circular(7.0),
+                              Flexible(
+                                child: Container(
+                                    margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                    height: 100,
+                                    width: double.infinity,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          services[index].name,
+                                          textAlign: TextAlign.center,
+                                            overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Poppins'),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Container(
+                                              margin: const EdgeInsets.fromLTRB(
+                                                  0, 0, 10, 0),
+                                              padding: EdgeInsets.all(8.0),
+                                              decoration: BoxDecoration(
+                                                color: Colors.lightBlue[50],
+                                                borderRadius:
+                                                    BorderRadius.circular(7.0),
+                                              ),
+                                              child: const Text(
+                                                '₱',
+                                                style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.cyan),
+                                              ),
                                             ),
-                                            child: const Text(
-                                              '₱',
-                                              style: TextStyle(
+                                            Text(
+                                              '${services[index].hourlyPrice} / hour',
+                                              textAlign: TextAlign.center,
+                                              maxLines: null,
+                                              style: const TextStyle(
                                                   fontSize: 15,
-                                                  color: Colors.cyan),
-                                            ),
-                                          ),
-                                          Text(
-                                            '${services[index].hourlyPrice} / hour',
-                                            textAlign: TextAlign.center,
-                                            maxLines: null,
-                                            style: const TextStyle(
-                                                fontSize: 15,
-                                                color: Color(0x97979797),
-                                                fontFamily: 'Poppins'),
-                                          )
-                                        ],
-                                      )
-                                    ],
-                                  ))
+                                                  color: Color(0x97979797),
+                                                  fontFamily: 'Poppins'),
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    )),
+                              )
                             ],
                           ),
                         ),
