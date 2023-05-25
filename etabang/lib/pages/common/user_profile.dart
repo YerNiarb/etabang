@@ -610,6 +610,7 @@ class _UserProfileState extends State<UserProfile> {
                 }
               },
                 child: Container(
+                  width: double.infinity,
                   margin: const EdgeInsets.only(top: 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -621,12 +622,19 @@ class _UserProfileState extends State<UserProfile> {
                           color: Colors.cyan,
                         ),
                       ),
-                      Text(
-                        "$street, $city, $state",
-                        style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.grey[700]
+                      Flexible(
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Text(
+                            "$street, $city, $state",
+                            maxLines: 5,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey[700]
+                              ),
                           ),
+                        ),
                       )
                     ]
                   ),
