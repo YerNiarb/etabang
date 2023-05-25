@@ -212,109 +212,107 @@ class _BookServiceState extends State<BookService> {
                   })
                 },
                 controlsBuilder: (BuildContext context, ControlsDetails details) {
-                  return Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        TextButton(
-                          style: ButtonStyle(
-                              backgroundColor:
-                                  MaterialStateProperty.all<Color>(Colors.cyan),
-                              foregroundColor:
-                                  MaterialStateProperty.all<Color>(Colors.white),
-                              minimumSize: MaterialStateProperty.all<Size>(
-                                  const Size(275, 65)),
-                              shape: MaterialStateProperty.all<
-                                  RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                ),
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      TextButton(
+                        style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all<Color>(Colors.cyan),
+                            foregroundColor:
+                                MaterialStateProperty.all<Color>(Colors.white),
+                            minimumSize: MaterialStateProperty.all<Size>(
+                                const Size(275, 65)),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15.0),
                               ),
-                              textStyle: MaterialStateProperty.all<TextStyle>(
-                                const TextStyle(
-                                    fontSize: 15, fontFamily: 'Poppins'),
-                              )),
-                          onPressed: () async {
-                            if (_currentStep == 2) {
-                              try {
-                                PostgreSQLConnection connection = await DbConnection().getConnection();
-                                String query = """
-                                  INSERT INTO public."Bookings"(
-                                    "StaffId", "CustomerId", "ServiceId", "Quantity", "SubTotal", "TravelFee", 
-                                    "ServiceLocation", "Street", "City", "State", "Status", "PaymentOption", "Date", "Time")
-                                    VALUES (
-                                      ${widget.serviceWorker.id}, 
-                                      $userId, 
-                                      ${widget.serviceId}, 
-                                      ${_bookingDetails.numberOfHours}, 
-                                      ${double.parse(_bookingDetails.subTotal.toStringAsFixed(2))}, 
-                                      ${double.parse(_bookingDetails.travelFee.toStringAsFixed(2))}, 
-                                      ST_Point(${_bookingDetails.latLong!.latitude}, ${_bookingDetails.latLong!.longitude}), 
-                                      '${_bookingDetails.street}', 
-                                      '${_bookingDetails.city}',
-                                      '${_bookingDetails.state}',
-                                      ${BookingStatus.booked.index},
-                                      ${PaymentOption.cod.index},
-                                      '${DateFormat('yyyy-MM-dd').format(_bookingDetails.bookingDate)}',
-                                      '${_bookingDetails.bookingTime.hour}:${_bookingDetails.bookingTime.minute}:00'
-                                    );
-                                """;
+                            ),
+                            textStyle: MaterialStateProperty.all<TextStyle>(
+                              const TextStyle(
+                                  fontSize: 15, fontFamily: 'Poppins'),
+                            )),
+                        onPressed: () async {
+                          if (_currentStep == 2) {
+                            try {
+                              PostgreSQLConnection connection = await DbConnection().getConnection();
+                              String query = """
+                                INSERT INTO public."Bookings"(
+                                  "StaffId", "CustomerId", "ServiceId", "Quantity", "SubTotal", "TravelFee", 
+                                  "ServiceLocation", "Street", "City", "State", "Status", "PaymentOption", "Date", "Time")
+                                  VALUES (
+                                    ${widget.serviceWorker.id}, 
+                                    $userId, 
+                                    ${widget.serviceId}, 
+                                    ${_bookingDetails.numberOfHours}, 
+                                    ${double.parse(_bookingDetails.subTotal.toStringAsFixed(2))}, 
+                                    ${double.parse(_bookingDetails.travelFee.toStringAsFixed(2))}, 
+                                    ST_Point(${_bookingDetails.latLong!.latitude}, ${_bookingDetails.latLong!.longitude}), 
+                                    '${_bookingDetails.street}', 
+                                    '${_bookingDetails.city}',
+                                    '${_bookingDetails.state}',
+                                    ${BookingStatus.booked.index},
+                                    ${PaymentOption.cod.index},
+                                    '${DateFormat('yyyy-MM-dd').format(_bookingDetails.bookingDate)}',
+                                    '${_bookingDetails.bookingTime.hour}:${_bookingDetails.bookingTime.minute}:00'
+                                  );
+                              """;
 
-                                final insertResult = await connection.mappedResultsQuery(query);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Success.'),
-                                    backgroundColor: Colors.cyan,
-                                  ),
-                                );
+                              final insertResult = await connection.mappedResultsQuery(query);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Success.'),
+                                  backgroundColor: Colors.cyan,
+                                ),
+                              );
 
-                                // ignore: use_build_context_synchronously
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => BookingConfirmed(
-                                            serviceWorkerName:
-                                                "${widget.serviceWorker.firstName} ${widget.serviceWorker.lastName}",
-                                          )),
-                                );
-                              } catch (e) {
-                                setState(() {
-                                  isLoading = false;
-                                } );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Unable place booking.'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                                return;
-                              }
+                              // ignore: use_build_context_synchronously
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => BookingConfirmed(
+                                          serviceWorkerName:
+                                              "${widget.serviceWorker.firstName} ${widget.serviceWorker.lastName}",
+                                        )),
+                              );
+                            } catch (e) {
+                              setState(() {
+                                isLoading = false;
+                              } );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Unable place booking.'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
                             }
+                          }
 
-                            setState(() {
-                              if (_currentStep < 2) {
-                                _currentStep += 1;
+                          setState(() {
+                            if (_currentStep < 2) {
+                              _currentStep += 1;
 
-                                switch(_currentStep){
-                                  case 0:
-                                    nextButtonText = "";
-                                    stepTitle = stepOneTitle;
-                                    break;
-                                  case 1:
-                                    nextButtonText = "Review Payment and Location";
-                                    stepTitle = stepTwoTitle;
-                                    break;
-                                  case 2:
-                                    nextButtonText = "Book Now";
-                                    stepTitle = stepThreeTitle;
-                                    break;
-                                }
-                              }                              
-                            });
-                          },
-                          child: Text(nextButtonText)),
-                      ],
-                    ),
+                              switch(_currentStep){
+                                case 0:
+                                  nextButtonText = "";
+                                  stepTitle = stepOneTitle;
+                                  break;
+                                case 1:
+                                  nextButtonText = "Review Payment and Location";
+                                  stepTitle = stepTwoTitle;
+                                  break;
+                                case 2:
+                                  nextButtonText = "Book Now";
+                                  stepTitle = stepThreeTitle;
+                                  break;
+                              }
+                            }                              
+                          });
+                        },
+                        child: Text(nextButtonText)),
+                    ],
                   );
                 },
                 steps: [

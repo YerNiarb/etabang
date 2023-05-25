@@ -254,70 +254,68 @@ class _FindWorkersState extends State<FindWorkers> {
                       );
                     },
                     child: 
-                    Flexible(
-                      child: Container(
-                        margin: const EdgeInsets.all(8.0),
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if(availableWorkers[index].profileImageUrl != defaulProfileImageUrl)
-                                Container(
-                                  margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                  width: 160,
-                                  height: 120,
-                                  decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
-                                    image: DecorationImage(
-                                      image: MemoryImage(base64.decode(availableWorkers[index].profileImageUrl)),
-                                      fit: BoxFit.cover,
-                                      alignment: Alignment.center,
-                                    )),
+                    Container(
+                      margin: const EdgeInsets.all(8.0),
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if(availableWorkers[index].profileImageUrl != defaulProfileImageUrl)
+                              Container(
+                                margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                width: 160,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                                  image: DecorationImage(
+                                    image: MemoryImage(base64.decode(availableWorkers[index].profileImageUrl)),
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.center,
+                                  )),
+                              ),
+                              if(availableWorkers[index].profileImageUrl == defaulProfileImageUrl)
+                              Container(
+                                margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                width: 160,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                                  image: DecorationImage(
+                                    image: AssetImage(defaulProfileImageUrl),
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.center,
+                                  )),
+                              ),
+                              Container(
+                                margin: const EdgeInsets.fromLTRB(8.0, 8.0, 0, 0),
+                                child: Text(
+                                  availableWorkers[index].firstName,
+                                  textAlign: TextAlign.left,
+                                  maxLines: null,
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Poppins'),
                                 ),
-                                if(availableWorkers[index].profileImageUrl == defaulProfileImageUrl)
-                                Container(
-                                  margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                  width: 160,
-                                  height: 120,
-                                  decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
-                                    image: DecorationImage(
-                                      image: AssetImage(defaulProfileImageUrl),
-                                      fit: BoxFit.cover,
-                                      alignment: Alignment.center,
-                                    )),
-                                ),
-                                Container(
-                                  margin: const EdgeInsets.fromLTRB(8.0, 8.0, 0, 0),
+                              ),
+                              Flexible(
+                                child: Container(
+                                  margin: const EdgeInsets.fromLTRB(8.0, 0, 0, 1),
                                   child: Text(
-                                    availableWorkers[index].firstName,
+                                    '${availableWorkers[index].kmAway} km away',
                                     textAlign: TextAlign.left,
                                     maxLines: null,
                                     style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11,
+                                        color: Color(0x97979797),
                                         fontFamily: 'Poppins'),
                                   ),
                                 ),
-                                Flexible(
-                                  child: Container(
-                                    margin: const EdgeInsets.fromLTRB(8.0, 0, 0, 1),
-                                    child: Text(
-                                      '${availableWorkers[index].kmAway} km away',
-                                      textAlign: TextAlign.left,
-                                      maxLines: null,
-                                      style: const TextStyle(
-                                          fontSize: 11,
-                                          color: Color(0x97979797),
-                                          fontFamily: 'Poppins'),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                          ),
+                              ),
+                            ],
                         ),
                       ),
                     ),
